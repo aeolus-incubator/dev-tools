@@ -1,5 +1,4 @@
-aeolus-cfg
-==========
+# Aeolus dev-tools
 
 Use bootstrap.sh to setup a devolpment environment for the aeolus
 projects conductor, aeolus-image-rubygem, and aeolus-cli and start up

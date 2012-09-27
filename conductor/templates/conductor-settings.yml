@@ -1,0 +1,24 @@
+:default_deltacloud_url: http://localhost:3002/api
+
+:auth:
+  # supported strategies: database, ldap
+  :strategy: database
+:groups:
+  # allows locally-managed groups
+  :enable_local: true
+  # allows ldap-managed groups
+  :enable_ldap: true
+:iwhd:
+  :url: http://localhost:9090
+  :oauth:
+    :consumer_key: <%= iwhd_oauth_user %>
+    :consumer_secret: <%= iwhd_oauth_password %>
+
+:imagefactory:
+  :url: https://localhost:8075/imagefactory
+  :oauth:
+    :consumer_key: <%= imagefactory_oauth_user %>
+    :consumer_secret: <%= imagefactory_oauth_password %>
+
+:session:
+  :timeout: 15 # minutes

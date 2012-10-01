@@ -12,7 +12,7 @@ fi
 # Just in case the user doesn't already exist
 useradd $DEV_USERNAME 2>/dev/null
 
-# Where aeolus-cfg gets checked out to
+# Where dev-tools gets checked out to
 if [ "x$WORKDIR" = "x" ]; then
     export WORKDIR=/tmp/$DEV_USERNAME
 fi
@@ -137,11 +137,11 @@ echo -n '{"factory":{"consumer_key":"5gjuDFBxVW67TDG5HOXOdiSLaIEMGbcs","consumer
 #
 mkdir -p $WORKDIR
 cd $WORKDIR
-if [ -d aeolus-cfg ]; then
- rm -rf aeolus-cfg
+if [ -d dev-tools ]; then
+ rm -rf dev-tools
 fi
 chown $DEV_USERNAME $WORKDIR
-su $DEV_USERNAME -c "git clone https://github.com/cwolferh/aeolus-cfg.git"
+su $DEV_USERNAME -c "git clone https://github.com/aeolus-incubator/dev-tools.git"
 
 if [ "x$RBENV_VERSION" != "x" ]; then
 
@@ -197,7 +197,7 @@ fi
 
 # First run as root to install needed dependencies
 # --no-report is to suppress the spurious error: http://projects.puppetlabs.com/issues/9862
-cd aeolus-cfg
+cd dev-tools
 puppet apply -d --modulepath=. test.pp --no-report
 
 # Run same command as a non-root user (e.g., test) to install repos,

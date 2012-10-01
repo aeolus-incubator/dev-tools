@@ -185,9 +185,10 @@ fi
 
 
 # First run as root to install needed dependencies
+# --no-report is to suppress the spurious error: http://projects.puppetlabs.com/issues/9862
 cd aeolus-cfg
-puppet apply -d --modulepath=. test.pp
+puppet apply -d --modulepath=. test.pp --no-report
 
 # Run same command as a non-root user (e.g., test) to install repos,
 # configure and start up conductor
-su $DEV_USERNAME -c "puppet apply -d --modulepath=. test.pp"
+su $DEV_USERNAME -c "puppet apply -d --modulepath=. test.pp --no-report"

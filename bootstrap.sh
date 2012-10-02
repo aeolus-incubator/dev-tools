@@ -194,11 +194,15 @@ if [ "x$RBENV_VERSION" != "x" ]; then
 
 fi
 
+getent group | grep -q -P '^puppet:'
+if [ $? -ne 0 ]; then
+  # workaround puppet bug http://projects.puppetlabs.com/issues/9862
+  groupadd puppet
+fi
 
 # First run as root to install needed dependencies
-# --no-report is to suppress the spurious error: http://projects.puppetlabs.com/issues/9862
 cd dev-tools
-puppet apply -d --modulepath=. test.pp --no-report
+puppet apply -d --modulepath=. test.pp
 
 # Run same command as a non-root user (e.g., test) to install repos,
 # configure and start up conductor

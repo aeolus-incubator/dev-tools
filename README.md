@@ -6,7 +6,7 @@ start up an instance of conductor.  While useful to developers, it
 also provides the capability to quicky test various branches, pull
 requests, and ruby versions.
 
-# Super Quick Start
+# Quick Start
 
 As the root user on a host you want to install Aeolus on:
 
@@ -21,6 +21,19 @@ As the root user on a host you want to install Aeolus on:
 This should work on rhel6, fc16 and fc17 (the script's env variables +
 oauth.json are pointing to existing imagefactory/iwhd/deltacloud
 instances).
+
+The default bootstrap.sh behaviour includes creating a development
+environment for the system user test in the directory /tmp/test and
+starting up Conductor on port 3000.  To override these settings, set
+the relevant environment variables before running bootstrap.sh, e.g.:
+
+    export DEV_USERNAME=myuser
+    export WORKDIR=/home/myuser/cloud-dev
+    export FACTER_CONDUCTOR_PORT=3001
+
+There are other useful environment variables described further in this
+document, for example to point to existing deltacloud, image factory
+and/or image warehouse instances, or to apply a pull request.
 
 # bootstrap.sh: Overview and Defaults
 

@@ -12,10 +12,11 @@ class conductor::setup::dev {
 
   exec { "install local aeolus-image-rubygem":
     cwd => "${aeolus_workdir}/conductor/src",
-    # the --no-ri and --no-doc are to avoid an
-    # "unrecognized option `--encoding'" error on rhel6 or fc16
-    command => "gem install -f --no-ri --no-rdoc --install-dir ${aeolus_workdir}/conductor/src/bundle/ruby/1* ${aeolus_workdir}/aeolus-image-rubygem/*.gem",
-    logoutput => on_failure,
+    # The --no-ri and --no-doc are to avoid an
+    # "unrecognized option `--encoding'" error on rhel6 or fc16.
+    # Added "|| true" because gem install may return non-zero even if gem copied successfully
+    command => "gem install -f --no-ri --no-rdoc --install-dir ${aeolus_workdir}/conductor/src/bundle/ruby/1* ${aeolus_workdir}/aeolus-image-rubygem/*.gem || true",
+    logoutput => true,
     onlyif => "/bin/ls ${aeolus_workdir}/aeolus-image-rubygem/*.gem",
     require => Exec["bundle install"]
   }
@@ -34,12 +35,12 @@ class conductor::setup::dev {
 
   exec { "create admin":
     cwd => "${aeolus_workdir}/conductor/src",
-    command => "bundle exec 'rake dc:create_admin_user'",
+    command => "bundle exec rake dc:create_admin_user",
     require => Exec["setup database"]
   }
   exec { "compass compile":
     cwd => "${aeolus_workdir}/conductor/src",
-    command => "bundle exec 'compass compile'",
+    command => "bundle exec compass compile",
     require => Exec["bundle install"]
   }
 }

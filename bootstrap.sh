@@ -191,7 +191,9 @@ if [ "x$RBENV_VERSION" != "x" ]; then
   su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; rbenv local --unset"
 
   export FACTER_RBENV_VERSION=$RBENV_VERSION
-
+  # looking up a home dir in puppet is not terribly easy, hence the next two lines
+  eval thehomedir=~$DEV_USERNAME
+  export FACTER_RBENV_HOME=`echo $thehomedir`/.rbenv
 fi
 
 getent group | grep -q -P '^puppet:'

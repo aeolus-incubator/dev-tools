@@ -1,12 +1,11 @@
 class aeolus_dev_tools_path {
-  if $rbenv_version == undef {
-    Exec { path => [ "/bin/", "/sbin/" , "/usr/bin/", "/usr/sbin/" ],
+  if $rbenv_home == undef {
+    Exec { path => "/bin:/sbin:/usr/bin:/usr/sbin",
            logoutput => "on_failure" }
   } else {
-    Exec { path => [ "~/.rbenv/bin", "~/.rbenv/shims", "/bin/", "/sbin/" , "/usr/bin/", "/usr/sbin/" ],
-           logoutput => "on_failure" }
+    Exec { path => "$rbenv_home/bin:$rbenv_home/shims:/bin:/sbin:/usr/bin:/usr/sbin",
+             logoutput => "on_failure" }
   }
-  # if not defined by facter
   if $aeolus_workdir == undef {
     $aeolus_workdir = '/tmp'
   }

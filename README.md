@@ -130,9 +130,9 @@ not).
 # Using rbenv (optional)
 
 If $RBENV_VERSION is defined when bootstrap.sh runs
-(e.g. $RBENV_VERSION=1.9.3-p194), rbenv will be installed if necessary
-to $DEV_USERNAME's home directory, and the specified ruby version will
-be built and installed therein.
+(e.g. $RBENV_VERSION=1.9.3-p194), rbenv will be installed (if
+necessary) to $DEV_USERNAME's home directory, and the specified ruby
+version will be built and installed therein.
 
 No changes to $DEV_USERNAME's shell are made, intentionally.  Rbenv
 users often update their shell behaviour, for example with:
@@ -146,6 +146,20 @@ prepending ~/.rbenv/bin:~/.rbenv/shims to one's current $PATH.  For
 example:
 
     $ export PATH=~/.rbenv/bin:~/.rbenv/shims:$PATH
+
+With the path set as above, if the user is in a working directory
+where "rbenv local" was invoked to specify a ruby version (or had been
+set in one of its parent dirs, recursively), they will pick up that
+version which can be verified by "rbenv which ruby".  What all of this
+means is that if the user has their path rbenv'ed, they will get the
+right version of ruby (whether a system or an rbenv version ruby) when
+they cd anywhere under $FACTER_AEOLUS_WORKDIR.
+
+If you're not yet familiar to rbenv, the following is a quick
+illustration showing: how to see what ruby versions are available, how
+to set a global version (though bootstrap.sh does not do this or
+require it) and to see which version of ruby is currently set.
+
     $ which ruby
     ~/.rbenv/shims/ruby
     $ rbenv which ruby

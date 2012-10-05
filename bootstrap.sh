@@ -173,22 +173,20 @@ if [ "x$RBENV_VERSION" != "x" ]; then
   fi
 
   # install bundler if not already installed
-  su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; rbenv local $RBENV_VERSION"
-  su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; rbenv rehash"
-  su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; rbenv which bundle" | grep -q "/$RBENV_VERSION/bin/bundle"
+  su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; cd $FACTER_AEOLUS_WORKDIR && rbenv local $RBENV_VERSION"
+  su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; cd $FACTER_AEOLUS_WORKDIR && rbenv rehash"
+  su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; cd $FACTER_AEOLUS_WORKDIR && rbenv which bundle" | grep -q "/$RBENV_VERSION/bin/bundle"
   if [ $? -ne 0 ]; then
-    su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; gem install bundler"
-    su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; rbenv rehash"
+    su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; cd $FACTER_AEOLUS_WORKDIR && gem install bundler"
+    su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; cd $FACTER_AEOLUS_WORKDIR && rbenv rehash"
 
     # sanity check install of bundler
-    su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; rbenv which bundle" | grep -q "/$RBENV_VERSION/bin/bundle"
+    su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; cd $FACTER_AEOLUS_WORKDIR && rbenv which bundle" | grep -q "/$RBENV_VERSION/bin/bundle"
     if [ $? -ne 0 ]; then
       echo "gem install bundler in rbenv for version $RBENV_VERSION did not appear to succeed"
       exit 1
     fi
   fi
-
-  su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; rbenv local --unset"
 
   export FACTER_RBENV_VERSION=$RBENV_VERSION
   # looking up a home dir in puppet is not terribly easy, hence the next two lines

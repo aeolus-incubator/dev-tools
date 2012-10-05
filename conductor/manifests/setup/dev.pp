@@ -2,29 +2,25 @@ class conductor::setup::dev {
   require conductor::config::dev
   require conductor::setup::dev_depend
 
+  exec { "patch Gemfile to point to local aeolus-image-rubygem":
+    cwd => "${aeolus_workdir}/conductor/src",
+    onlyif => "test -f ${aeolus_workdir}/aeolus-image-rubygem/aeolus-image-0.6.0.gem",
+    command => "sed -i \"s#:git.*\\\$#:path => '${aeolus_workdir}/aeolus-image-rubygem'#\" Gemfile"
+  }
+
   exec { "bundle install":
     cwd => "${aeolus_workdir}/conductor/src",
     command => "bundle install --path bundle",
     logoutput => on_failure,
     # 15 minute timeout because this can take awhile sometimes
-    timeout => 900
-  }
-
-  exec { "install local aeolus-image-rubygem":
-    cwd => "${aeolus_workdir}/conductor/src",
-    # The --no-ri and --no-doc are to avoid an
-    # "unrecognized option `--encoding'" error on rhel6 or fc16.
-    # Added "|| true" because gem install may return non-zero even if gem copied successfully
-    command => "gem install -f --no-ri --no-rdoc --install-dir ${aeolus_workdir}/conductor/src/bundle/ruby/1* ${aeolus_workdir}/aeolus-image-rubygem/*.gem || true",
-    logoutput => true,
-    onlyif => "/bin/ls ${aeolus_workdir}/aeolus-image-rubygem/*.gem",
-    require => Exec["bundle install"]
+    timeout => 900,
+    require => Exec["patch Gemfile to point to local aeolus-image-rubygem"]
   }
 
   exec { "migrate database":
     cwd => "${aeolus_workdir}/conductor/src",
     command => "bundle exec rake db:migrate",
-    require => Exec["install local aeolus-image-rubygem"]
+    require => Exec["bundle install"]
   }
 
   exec { "setup database":

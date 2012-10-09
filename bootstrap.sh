@@ -23,12 +23,18 @@ if [ "x$FACTER_AEOLUS_WORKDIR" = "x" ]; then
     export FACTER_AEOLUS_WORKDIR=$WORKDIR
 fi
 
-# Where the aeolus projects (conductor, aeolus-cli and aeolus-image-rubygem)
-# get checked out to
+# Port to start up conductor on
 if [ "x$FACTER_CONDUCTOR_PORT" = "x" ]; then
     export FACTER_CONDUCTOR_PORT=3000
 fi
 
+# Arbitrary post-script commmand to execute
+# (useful for say, seeding provider accounts)
+if [ "x$POST_SCRIPTLET" = "x" ]; then
+    # when $POST_SCRIPTLET is eval'ed, it should just write the 
+    # script to execute to stdout
+    export POST_SCRIPTLET='curl http://qeblade30.rhq.lab.eng.bos.redhat.com/add-providers-scriptlet.rb'
+fi
 
 # If you want to use system ruby for the aeolus projects, do not
 # define this env var.  Otherwise, use (and install if necessary)
@@ -157,7 +163,7 @@ if [ "x$RBENV_VERSION" != "x" ]; then
   # install rbenv plus plugins rbenv-var, ruby-build, rbenv-installer
   # this is a harmless op if already installed (TODO: don't bother downloading and running if already installed)
   su $DEV_USERNAME -c "curl -L https://raw.github.com/fesplugas/rbenv-installer/master/bin/rbenv-installer | /bin/sh"
-  DEV_USERNAME_PATH_PREFIX="~/.rbenv/bin:~/.rbenv/shims"
+  export DEV_USERNAME_PATH_PREFIX="~/.rbenv/bin:~/.rbenv/shims"
 
   # if this ruby version is not already installed in this user's rbenv, install it
   su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; rbenv versions" | grep -q $RBENV_VERSION
@@ -207,3 +213,6 @@ puppet apply -d --modulepath=. test.pp
 # Run same command as a non-root user (e.g., test) to install repos,
 # configure and start up conductor
 su $DEV_USERNAME -c "puppet apply -d --modulepath=. test.pp --no-report"
+
+# Additional configuration (e.g., adding provider accounts)
+eval $POST_SCRIPTLET | /bin/sh -x

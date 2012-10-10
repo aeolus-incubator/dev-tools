@@ -11,6 +11,14 @@ class conductor::run::dev {
     command => "bundle exec \"rails server -p $conductor_port\"&",
     unless => "/usr/bin/curl http://0.0.0.0:$conductor_port"
   }
+  exec { "conductor delayed_job":
+    cwd => "${aeolus_workdir}/conductor/src",
+    command => "bundle exec \"rake jobs:work\" >>log/delayed_job.log&"
+  }
+  exec { "conductor dbomatic":
+    cwd => "${aeolus_workdir}/conductor/src",
+    command => "bundle exec \"ruby dbomatic/dbomatic --log log --pid-file tmp -n\"&"
+  }
   exec { "wait for rails to start":
     # since we backgrounded starting up rails, let's make sure it started up
     cwd => "${aeolus_workdir}/conductor/src",

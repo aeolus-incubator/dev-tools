@@ -13,7 +13,7 @@ class conductor::run::dev {
   }
   exec { "conductor delayed_job":
     cwd => "${aeolus_workdir}/conductor/src",
-    command => "bundle exec \"rake jobs:work\" >>log/delayed_job.log&"
+    command => "bundle exec \"rake jobs:work\"&"
   }
   exec { "conductor dbomatic":
     cwd => "${aeolus_workdir}/conductor/src",

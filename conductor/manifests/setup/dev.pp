@@ -29,6 +29,11 @@ class conductor::setup::dev {
     require => Exec["migrate database"]
   }
 
+  exec { "setup delayed_job to log locally":
+    cwd => "${aeolus_workdir}/conductor/src",
+    command => "echo 'Delayed::Worker.logger = Rails.logger' >> config/initializers/delayed_job.rb",
+  }
+
   exec { "create admin":
     cwd => "${aeolus_workdir}/conductor/src",
     command => "bundle exec rake dc:create_admin_user",

@@ -18,8 +18,12 @@
 require 'rubygems'
 require 'json'
 
-## TODO  UN-HARDCODE ouath.json
-file = File.open("/etc/aeolus-conductor/oauth.json", 'r') or raise "Could not open file"
+the_json_file = ENV['FACTER_OAUTH_JSON_FILE']
+if the_json_file == nil
+  the_json_file = '/etc/aeolus-conductor/oauth.json'
+end
+
+file = File.open(the_json_file, 'r') or raise "Could not open file"
 
 contents = file.read
 oauthconfig = JSON.parse(contents)

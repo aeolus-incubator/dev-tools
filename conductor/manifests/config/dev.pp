@@ -11,11 +11,10 @@ class conductor::config::dev {
     command => "cp config/database.sqlite config/database.yml",
   }
 
-  # TODO: perhaps make oauth.json location a variable
   exec { "use established ouath.json if it exists":
     cwd => "${aeolus_workdir}/conductor/src/config",
-    onlyif => "test -f /etc/aeolus-conductor/oauth.json",
-    command => "cp /etc/aeolus-conductor/oauth.json ${aeolus_workdir}/conductor/src/config/"
+    onlyif => "test -f ${oauth_json_file}",
+    command => "cp ${oauth_json_file} ${aeolus_workdir}/conductor/src/config/oauth.json"
    }
 
    if $imagefactory_oauth_user {

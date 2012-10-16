@@ -123,8 +123,22 @@ if [ "x$FACTER_IMAGEFACTORY_URL" = "x" ]; then
 fi
 
 # Create some default OAuth values
-mkdir -p /etc/aeolus-conductor
-echo -n '{"factory":{"consumer_key":"5gjuDFBxVW67TDG5HOXOdiSLaIEMGbcs","consumer_secret":"6Vry7voPLl8xhbG5dGiB7dtiPpu7EqXR"},"iwhd":{"consumer_key":"6pu2dedsVydkqf294/N1dvFCJs5eeWIp","consumer_secret":"O+as/3PsTVeiWSlAmlIABiZqcz98KdGj"}}' > /etc/aeolus-conductor/oauth.json
+if [ "x$FACTER_OAUTH_JSON_FILE" = "x" ]; then
+  export FACTER_OAUTH_JSON_FILE=/etc/aeolus-conductor/oauth.json
+  if [ ! -e $FACTER_OAUTH_JSON_FILE ]; then
+    mkdir -p /etc/aeolus-conductor
+
+    # The next command is more here for illustrative purposes and to
+    # allow bootstrap.sh to succeed.  The values in oauth.json should
+    # correspond to existing credentials in an image factory and image
+    # warehouse install.
+    #
+    # Note that after bootstrap.sh runs (and your development is set
+    # up), you can always edit conductor/src/config/settings.yml to
+    # reflect updated image factory and image warehouse credentials.
+    echo -n '{"factory":{"consumer_key":"5gjuDFBxVW67TDG5HOXOdiSLaIEMGbcs","consumer_secret":"6Vry7voPLl8xhbG5dGiB7dtiPpu7EqXR"},"iwhd":{"consumer_key":"6pu2dedsVydkqf294/N1dvFCJs5eeWIp","consumer_secret":"O+as/3PsTVeiWSlAmlIABiZqcz98KdGj"}}' > /etc/aeolus-conductor/oauth.json
+  fi
+fi
 
 # Optional environment variables (sample values are given below)
 #

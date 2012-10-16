@@ -15,7 +15,7 @@ As the root user on a host you want to install Aeolus on:
     # curl https://raw.github.com/aeolus-incubator/dev-tools/master/bootstrap.sh | /bin/sh -x
 
   If you want to use a specific ruby version via rbenv:
-    
+
     # export RBENV_VERSION=1.9.3-p194; curl https://raw.github.com/aeolus-incubator/dev-tools/master/bootstrap.sh | /bin/sh -x
 
 This should work on rhel6, fc16 and fc17 (the script's env variables +
@@ -45,43 +45,44 @@ defaults:
 
   The user that owns the git checkouts, and that we use to run
   bundler, rake and rails commands (ultimately firing up conductor):
-  
+
     DEV_USERNAME=test
 
   Parent dir where the dev-tools puppet code gets checked out to:
-  
+
     WORKDIR=/tmp/$DEV_USERNAME
-  
+
   Parent dir where the projects conductor, aeolus-cli and
   aeolus-image-rubygem get checked out to (by default same as above):
 
     FACTER_AEOLUS_WORKDIR=$WORKDIR
-  
+
   Port that Conductor gets started up on:
 
     FACTER_CONDUCTOR_PORT=3000
-  
+
   Which ruby that is used to configure and start up conductor, via
   rbenv.  It is undefined by default, meaning just use system ruby and
   not rbenv:
-    
+
     RBENV_VERSION=
 
-  URL's to api's that conductor relies on, namely deltacloud, image
-  factory, and image warehouse.  Note that if you update these you
-  would also need to update the contents of oauth.json in
-  bootstrap.sh:
+  URL's to API's that conductor relies on, namely deltacloud, image
+  factory, and image warehouse.  A valid oauth.json also must be
+  specified, which contains credentials specific to your Image Factory
+  and Image Warehouse instance.
 
-    FACTER_DELTACLOUD_URL=http://qeblade30.rhq.lab.eng.bos.redhat.com:3002/api
-    FACTER_IMAGEFACTORY_URL=https://qeblade30.rhq.lab.eng.bos.redhat.com:8075/imagefactory
-    FACTER_IWHD_URL=http://qeblade30.rhq.lab.eng.bos.redhat.com:9090
-  
+    FACTER_DELTACLOUD_URL=http://localhost:3002/api
+    FACTER_IMAGEFACTORY_URL=https://localhost:8075/imagefactory
+    FACTER_IWHD_URL=http://localhost:9090
+    FACTER_OAUTH_JSON_FILE=/etc/aeolus-conductor/oauth.json
+
   Git branches that are checked out:
 
     FACTER_AEOLUS_CLI_BRANCH=master
     FACTER_AEOLUS_IMAGE_RUBYGEM_BRANCH=master
     FACTER_CONDUCTOR_BRANCH=master
-  
+
   By default no Github pull requests are defined.  If you wish to
   apply a pull request to a given project, the pull request itself
   must be active and it must be specified as an integer:
@@ -90,7 +91,7 @@ defaults:
     FACTER_AEOLUS_IMAGE_RUBYGEM_PULL_REQUEST=
     FACTER_CONDUCTOR_PULL_REQUEST=
 
-    
+
 # The Development Environment
 
 Running bootstrap.sh as root creates a development environment for the

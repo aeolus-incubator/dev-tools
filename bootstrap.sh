@@ -28,14 +28,6 @@ if [ "x$FACTER_CONDUCTOR_PORT" = "x" ]; then
     export FACTER_CONDUCTOR_PORT=3000
 fi
 
-# Arbitrary post-script commmand to execute
-# (useful for say, seeding provider accounts)
-if [ "x$POST_SCRIPTLET" = "x" ]; then
-    # when $POST_SCRIPTLET is eval'ed, it should just write the 
-    # script to execute to stdout
-    export POST_SCRIPTLET='curl http://qeblade30.rhq.lab.eng.bos.redhat.com/add-providers-scriptlet.rb'
-fi
-
 # If you want to use system ruby for the aeolus projects, do not
 # define this env var.  Otherwise, use (and install if necessary)
 # specified ruby version locally in ~/.rbenv for $DEV_USERNAME
@@ -113,13 +105,13 @@ fi
 # Set default Deltacloud, ImageFactory, and Image Warehouse values
 # (for RH network) if they're not already in the environment
 if [ "x$FACTER_IWHD_URL" = "x" ]; then
-    export FACTER_IWHD_URL=http://qeblade30.rhq.lab.eng.bos.redhat.com:9090
+    export FACTER_IWHD_URL=http://localhost:9090
 fi
 if [ "x$FACTER_DELTACLOUD_URL" = "x" ]; then
-    export FACTER_DELTACLOUD_URL=http://qeblade30.rhq.lab.eng.bos.redhat.com:3002/api
+    export FACTER_DELTACLOUD_URL=http://localhost:3002/api
 fi
 if [ "x$FACTER_IMAGEFACTORY_URL" = "x" ]; then
-    export FACTER_IMAGEFACTORY_URL=https://qeblade30.rhq.lab.eng.bos.redhat.com:8075/imagefactory
+    export FACTER_IMAGEFACTORY_URL=https://localhost:8075/imagefactory
 fi
 
 # Create some default OAuth values
@@ -228,5 +220,11 @@ puppet apply -d --modulepath=. test.pp
 # configure and start up conductor
 su $DEV_USERNAME -c "puppet apply -d --modulepath=. test.pp --no-report"
 
-# Additional configuration (e.g., adding provider accounts)
-eval $POST_SCRIPTLET | /bin/sh -x
+# Arbitrary post-script commmand to execute
+# (useful for say, seeding provider accounts)
+if [ ! "x$POST_SCRIPTLET" = "x" ]; then
+    # when $POST_SCRIPTLET is eval'ed, it should just write the 
+    # script to execute to stdout
+  # Additional configuration (e.g., adding provider accounts)
+  eval $POST_SCRIPTLET | /bin/sh -x
+fi

@@ -14,18 +14,18 @@ useradd $DEV_USERNAME 2>/dev/null
 
 # Where dev-tools gets checked out to
 if [ "x$WORKDIR" = "x" ]; then
-    export WORKDIR=/tmp/$DEV_USERNAME
+  export WORKDIR=/tmp/$DEV_USERNAME
 fi
 
 # Where the aeolus projects (conductor, aeolus-cli and aeolus-image-rubygem)
 # get checked out to
 if [ "x$FACTER_AEOLUS_WORKDIR" = "x" ]; then
-    export FACTER_AEOLUS_WORKDIR=$WORKDIR
+  export FACTER_AEOLUS_WORKDIR=$WORKDIR
 fi
 
 # Port to start up conductor on
 if [ "x$FACTER_CONDUCTOR_PORT" = "x" ]; then
-    export FACTER_CONDUCTOR_PORT=3000
+  export FACTER_CONDUCTOR_PORT=3000
 fi
 
 # If you want to use system ruby for the aeolus projects, do not
@@ -34,15 +34,15 @@ fi
 # export RBENV_VERSION=1.9.3-p194
 
 if `netstat -tlpn | grep -q -P "\:$FACTER_CONDUCTOR_PORT\\s"`; then
-    echo "A process is already listening on port $FACTER_CONDUCTOR_PORT.  Aborting"
-    exit 1
+  echo "A process is already listening on port $FACTER_CONDUCTOR_PORT.  Aborting"
+  exit 1
 fi
 
 if [ -e $FACTER_AEOLUS_WORKDIR/conductor ] || [ -e $FACTER_AEOLUS_WORKDIR/aeolus-image-rubygem ] || \
-    [ -e $FACTER_AEOLUS_WORKDIR/aeolus-cli ]; then
-    echo -n "Already existing directories, one of $FACTER_AEOLUS_WORKDIR/conductor, "
-    echo "$FACTER_AEOLUS_WORKDIR/aeolus-image-rubygem or $FACTER_AEOLUS_WORKDIR/aeolus-cli.  Aborting"
-    exit 1
+  [ -e $FACTER_AEOLUS_WORKDIR/aeolus-cli ]; then
+  echo -n "Already existing directories, one of $FACTER_AEOLUS_WORKDIR/conductor, "
+  echo "$FACTER_AEOLUS_WORKDIR/aeolus-image-rubygem or $FACTER_AEOLUS_WORKDIR/aeolus-cli.  Aborting"
+  exit 1
 fi
 
 os=unsupported
@@ -59,59 +59,59 @@ if `grep -qs -P 'Fedora release 17' /etc/fedora-release`; then
 fi
 
 if [ "$os" = "unsupported" ]; then
-    echo This script has not been tested outside of EL6, Fedora 16
-    echo and Fedora 17. You will need to install development
-    echo libraries and set up postgres manually.
-    echo
-    echo Press Control-C to quit, or ENTER to continue
-    read waiting
+  echo This script has not been tested outside of EL6, Fedora 16
+  echo and Fedora 17. You will need to install development
+  echo libraries and set up postgres manually.
+  echo
+  echo Press Control-C to quit, or ENTER to continue
+  read waiting
 fi
 
 # Check if gcc rpm is installed
 if ! `rpm -q --quiet gcc`; then
-    yum install -y gcc
+  yum install -y gcc
 fi
 
 # Check if make rpm is installed
 if ! `rpm -q --quiet make`; then
-    yum install -y make
+  yum install -y make
 fi
 
 # Check if git rpm is installed
 if ! `rpm -q --quiet git`; then
-    yum install -y git
+  yum install -y git
 fi
 
 # Check if rubygems rpm is installed
 if ! `rpm -q --quiet rubygems`; then
-    yum install -y rubygems
+  yum install -y rubygems
 fi
 
 # Check if ruby-devel rpm is installed
 if ! `rpm -q --quiet ruby-devel`; then
-    yum install -y ruby-devel
+  yum install -y ruby-devel
 fi
 
 # Install the json and puppet gems if they're not already installed
 if [ `gem list -i json` = "false" ]; then
-    echo Installing json gem
-    gem install json
+  echo Installing json gem
+  gem install json
 fi
 if [ `gem list -i puppet` = "false" ]; then
-    echo Installing puppet gem
-    gem install puppet
+  echo Installing puppet gem
+  gem install puppet
 fi
 
 # Set default Deltacloud, ImageFactory, and Image Warehouse values
 # (for RH network) if they're not already in the environment
 if [ "x$FACTER_IWHD_URL" = "x" ]; then
-    export FACTER_IWHD_URL=http://localhost:9090
+  export FACTER_IWHD_URL=http://localhost:9090
 fi
 if [ "x$FACTER_DELTACLOUD_URL" = "x" ]; then
-    export FACTER_DELTACLOUD_URL=http://localhost:3002/api
+  export FACTER_DELTACLOUD_URL=http://localhost:3002/api
 fi
 if [ "x$FACTER_IMAGEFACTORY_URL" = "x" ]; then
-    export FACTER_IMAGEFACTORY_URL=https://localhost:8075/imagefactory
+  export FACTER_IMAGEFACTORY_URL=https://localhost:8075/imagefactory
 fi
 
 # Create some default OAuth values
@@ -126,8 +126,9 @@ if [ "x$FACTER_OAUTH_JSON_FILE" = "x" ]; then
     # warehouse install.
     #
     # Note that after bootstrap.sh runs (and your development is set
-    # up), you can always edit conductor/src/config/settings.yml to
-    # reflect updated image factory and image warehouse credentials.
+    # up), you can always edit conductor/src/config/settings.yml and
+    # conductor/src/config/oauth.json to reflect updated image factory
+    # and image warehouse credentials.
     echo -n '{"factory":{"consumer_key":"5gjuDFBxVW67TDG5HOXOdiSLaIEMGbcs","consumer_secret":"6Vry7voPLl8xhbG5dGiB7dtiPpu7EqXR"},"iwhd":{"consumer_key":"6pu2dedsVydkqf294/N1dvFCJs5eeWIp","consumer_secret":"O+as/3PsTVeiWSlAmlIABiZqcz98KdGj"}}' > /etc/aeolus-conductor/oauth.json
   fi
 fi
@@ -223,8 +224,9 @@ su $DEV_USERNAME -c "puppet apply -d --modulepath=. test.pp --no-report"
 # Arbitrary post-script commmand to execute
 # (useful for say, seeding provider accounts)
 if [ ! "x$POST_SCRIPTLET" = "x" ]; then
-    # when $POST_SCRIPTLET is eval'ed, it should just write the 
-    # script to execute to stdout
-  # Additional configuration (e.g., adding provider accounts)
+
+  # When $POST_SCRIPTLET is eval'ed, it should just write the script
+  # to execute to stdout.  It is "eval'ed" so your outside script can
+  # safely use bootstrap.sh environment variables.
   eval $POST_SCRIPTLET | /bin/sh -x
 fi

@@ -185,6 +185,6 @@ rbenv's ruby (if specified) is used to for all the bundle, rake and
 rails work.
 
 # See Also
-
+* http://blog.aeolusproject.org/upstream-conductor-development
 * https://lists.fedorahosted.org/pipermail/aeolus-devel/2012-September/012684.html
 * https://lists.fedorahosted.org/pipermail/aeolus-devel/2012-September/012599.html

@@ -13,10 +13,12 @@ As the root user on a host you want to install Aeolus on:
   If you want to use system ruby:
 
     # curl https://raw.github.com/aeolus-incubator/dev-tools/master/bootstrap.sh | /bin/sh -x
+    (lots of output here)
 
   If you want to use a specific ruby version via rbenv:
 
     # export RBENV_VERSION=1.9.3-p194; curl https://raw.github.com/aeolus-incubator/dev-tools/master/bootstrap.sh | /bin/sh -x
+    (lots of output here)
 
 This should work on rhel6, fc16 and fc17 (the script's env variables +
 oauth.json are pointing to existing imagefactory/iwhd/deltacloud
@@ -37,7 +39,7 @@ and/or image warehouse instances, or to apply a pull request.
 
 # bootstrap.sh: Overview and Defaults
 
-boostrap.sh checks out and configures the three aformentioned Aeolus
+bootstrap.sh checks out and configures the three aformentioned Aeolus
 projects, configures conductor (including specifying a local sqlite
 database) and starts it up.  There are a number of environment
 variables you may wish to define, otherwise they get the following

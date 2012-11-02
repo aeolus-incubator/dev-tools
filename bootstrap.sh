@@ -97,6 +97,12 @@ if [ `gem list -i json` = "false" ]; then
   echo Installing json gem
   gem install json
 fi
+if [ `gem list -i facter` = "false" ]; then
+  echo Installing facter gem
+  # installing a slightly older version of facter to work around an issue like
+  # Error: Could not run: Could not retrieve facts for <hostame>: undefined method `enum_lsdev' for Facter::Util::Processor:Module
+  gem install facter -v 1.6.13
+fi
 if [ `gem list -i puppet` = "false" ]; then
   echo Installing puppet gem
   gem install puppet

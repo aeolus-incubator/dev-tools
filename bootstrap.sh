@@ -135,7 +135,7 @@ if [ "x$FACTER_OAUTH_JSON_FILE" = "x" ]; then
     # up), you can always edit conductor/src/config/settings.yml and
     # conductor/src/config/oauth.json to reflect updated image factory
     # and image warehouse credentials.
-    echo -n '{"factory":{"consumer_key":"5gjuDFBxVW67TDG5HOXOdiSLaIEMGbcs","consumer_secret":"6Vry7voPLl8xhbG5dGiB7dtiPpu7EqXR"},"iwhd":{"consumer_key":"6pu2dedsVydkqf294/N1dvFCJs5eeWIp","consumer_secret":"O+as/3PsTVeiWSlAmlIABiZqcz98KdGj"}}' > /etc/aeolus-conductor/oauth.json
+    echo -n '{"iwhd":{"consumer_secret":"/Bv2mvBusak2HoCJXUwXIogMhPrkjIjR","consumer_key":"G9xILgFMXZ4lEsQgO1CG6ujErGKwA6Cp"},"factory":{"consumer_secret":"ieqL8ojxPQBvKwCh3m36Fc6on4B+SHB/","consumer_key":"LfiaAIMFP0ASr3VGrbCDjQn1bQL81+SK"}}' > /etc/aeolus-conductor/oauth.json
   fi
 fi
 

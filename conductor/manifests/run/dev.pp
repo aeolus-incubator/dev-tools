@@ -13,11 +13,13 @@ class conductor::run::dev {
   }
   exec { "conductor delayed_job":
     cwd => "${aeolus_workdir}/conductor/src",
-    command => "bundle exec \"rake jobs:work\"&"
+    command => "bundle exec \"rake jobs:work\"&",
+    require => Exec["wait for rails to start"]
   }
   exec { "conductor dbomatic":
     cwd => "${aeolus_workdir}/conductor/src",
-    command => "bundle exec \"ruby dbomatic/dbomatic --log log --pid-file tmp -n\"&"
+    command => "bundle exec \"ruby dbomatic/dbomatic --log log --pid-file tmp -n\"&",
+    require => Exec["wait for rails to start"]
   }
   exec { "wait for rails to start":
     # since we backgrounded starting up rails, let's make sure it started up

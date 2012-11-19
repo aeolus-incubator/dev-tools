@@ -97,17 +97,17 @@ fi
 # Install the json and puppet gems if they're not already installed
 if [ `gem list -i json` = "false" ]; then
   echo Installing json gem
-  sudo gem install json
+  gem install json
 fi
 if [ `gem list -i facter` = "false" ]; then
   echo Installing facter gem
   # installing a slightly older version of facter to work around an issue like
   # Error: Could not run: Could not retrieve facts for <hostame>: undefined method `enum_lsdev' for Facter::Util::Processor:Module
-  sudo gem install facter -v 1.6.13
+  gem install facter -v 1.6.13
 fi
 if [ `gem list -i puppet` = "false" ]; then
   echo Installing puppet gem
-  sudo gem install puppet
+  gem install puppet
 fi
 
 # Set default Deltacloud, ImageFactory, and Image Warehouse values

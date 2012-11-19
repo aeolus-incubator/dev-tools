@@ -5,16 +5,8 @@
 # imagefactory/iwhd/deltacloud by setting env variables and
 # oauth.json, below.  Startup conductor on port 3000
 
-# Set the default user to check out repos with, if not requested
-if [ "x$DEV_USERNAME" = "x" ]; then
-  export DEV_USERNAME=test
-fi
-# Just in case the user doesn't already exist
-sudo useradd $DEV_USERNAME 2>/dev/null
-
-# Where dev-tools gets checked out to
 if [ "x$WORKDIR" = "x" ]; then
-  export WORKDIR=/tmp/$DEV_USERNAME
+  export WORKDIR=~/aeolus-workdir
 fi
 
 # Where the aeolus projects (conductor, aeolus-cli and aeolus-image-rubygem)
@@ -190,7 +182,7 @@ if [ "x$RBENV_VERSION" != "x" ]; then
   # bail if the ruby version doesn't seem to be installed
   rbenv versions | grep -q $RBENV_VERSION
   if [ $? -ne 0 ]; then
-    echo was not able to "rbenv install $RBENV_VERSION".  Check ~$DEV_USERNAME/.rbenv
+    echo was not able to "rbenv install $RBENV_VERSION".  Check ~/.rbenv
     exit 1
   fi
 
@@ -212,7 +204,7 @@ if [ "x$RBENV_VERSION" != "x" ]; then
 
   export FACTER_RBENV_VERSION=$RBENV_VERSION
   # looking up a home dir in puppet is not terribly easy, hence the next two lines
-  eval thehomedir=~$DEV_USERNAME
+  eval thehomedir=~
   export FACTER_RBENV_HOME=`echo $thehomedir`/.rbenv
 fi
 

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Setup a development environment for conductor, aeolus-image-rubygem
 # and aeolus-cli.  Configure conductor to use an external
@@ -10,7 +10,7 @@ if [ "x$DEV_USERNAME" = "x" ]; then
   export DEV_USERNAME=test
 fi
 # Just in case the user doesn't already exist
-useradd $DEV_USERNAME 2>/dev/null
+sudo useradd $DEV_USERNAME 2>/dev/null
 
 # Where dev-tools gets checked out to
 if [ "x$WORKDIR" = "x" ]; then
@@ -69,43 +69,43 @@ fi
 
 # Check if gcc rpm is installed
 if ! `rpm -q --quiet gcc`; then
-  yum install -y gcc
+  sudo yum install -y gcc
 fi
 
 # Check if make rpm is installed
 if ! `rpm -q --quiet make`; then
-  yum install -y make
+  sudo yum install -y make
 fi
 
 # Check if git rpm is installed
 if ! `rpm -q --quiet git`; then
-  yum install -y git
+  sudo yum install -y git
 fi
 
 # Check if rubygems rpm is installed
 if ! `rpm -q --quiet rubygems`; then
-  yum install -y rubygems
+  sudo yum install -y rubygems
 fi
 
 # Check if ruby-devel rpm is installed
 if ! `rpm -q --quiet ruby-devel`; then
-  yum install -y ruby-devel
+  sudo yum install -y ruby-devel
 fi
 
 # Install the json and puppet gems if they're not already installed
 if [ `gem list -i json` = "false" ]; then
   echo Installing json gem
-  gem install json
+  sudo gem install json
 fi
 if [ `gem list -i facter` = "false" ]; then
   echo Installing facter gem
   # installing a slightly older version of facter to work around an issue like
   # Error: Could not run: Could not retrieve facts for <hostame>: undefined method `enum_lsdev' for Facter::Util::Processor:Module
-  gem install facter -v 1.6.13
+  sudo gem install facter -v 1.6.13
 fi
 if [ `gem list -i puppet` = "false" ]; then
   echo Installing puppet gem
-  gem install puppet
+  sudo gem install puppet
 fi
 
 # Set default Deltacloud, ImageFactory, and Image Warehouse values
@@ -124,7 +124,7 @@ fi
 if [ "x$FACTER_OAUTH_JSON_FILE" = "x" ]; then
   export FACTER_OAUTH_JSON_FILE=/etc/aeolus-conductor/oauth.json
   if [ ! -e $FACTER_OAUTH_JSON_FILE ]; then
-    mkdir -p /etc/aeolus-conductor
+    sudo mkdir -p /etc/aeolus-conductor
 
     # The next command is more here for illustrative purposes and to
     # allow bootstrap.sh to succeed.  The values in oauth.json should
@@ -135,7 +135,7 @@ if [ "x$FACTER_OAUTH_JSON_FILE" = "x" ]; then
     # up), you can always edit conductor/src/config/settings.yml and
     # conductor/src/config/oauth.json to reflect updated image factory
     # and image warehouse credentials.
-    echo -n '{"iwhd":{"consumer_secret":"/Bv2mvBusak2HoCJXUwXIogMhPrkjIjR","consumer_key":"G9xILgFMXZ4lEsQgO1CG6ujErGKwA6Cp"},"factory":{"consumer_secret":"ieqL8ojxPQBvKwCh3m36Fc6on4B+SHB/","consumer_key":"LfiaAIMFP0ASr3VGrbCDjQn1bQL81+SK"}}' > /etc/aeolus-conductor/oauth.json
+    sudo echo -n '{"iwhd":{"consumer_secret":"/Bv2mvBusak2HoCJXUwXIogMhPrkjIjR","consumer_key":"G9xILgFMXZ4lEsQgO1CG6ujErGKwA6Cp"},"factory":{"consumer_secret":"ieqL8ojxPQBvKwCh3m36Fc6on4B+SHB/","consumer_key":"LfiaAIMFP0ASr3VGrbCDjQn1bQL81+SK"}}' > /etc/aeolus-conductor/oauth.json
   fi
 fi
 
@@ -156,11 +156,14 @@ fi
 #
 mkdir -p $WORKDIR
 cd $WORKDIR
-if [ -d dev-tools ]; then
- rm -rf dev-tools
+if [ ! -d dev-tools ]; then
+ git clone https://github.com/aeolus-incubator/dev-tools.git
+else
+ echo 'dev-tools DIRECTORY ALREADY EXISTS, LEAVING IN TACT.'
 fi
-chown $DEV_USERNAME $WORKDIR
-su $DEV_USERNAME -c "git clone https://github.com/aeolus-incubator/dev-tools.git"
+
+# TODO check dev-tools directory (and thus also parent $WORKDIR) exist
+# at this point or bail
 
 if [ "x$RBENV_VERSION" != "x" ]; then
 
@@ -175,32 +178,32 @@ if [ "x$RBENV_VERSION" != "x" ]; then
 
   # install rbenv plus plugins rbenv-var, ruby-build, rbenv-installer
   # this is a harmless op if already installed (TODO: don't bother downloading and running if already installed)
-  su $DEV_USERNAME -c "curl -L https://raw.github.com/fesplugas/rbenv-installer/master/bin/rbenv-installer | /bin/sh"
-  export DEV_USERNAME_PATH_PREFIX="~/.rbenv/bin:~/.rbenv/shims"
+  curl -L https://raw.github.com/fesplugas/rbenv-installer/master/bin/rbenv-installer | /bin/bash
+  export PATH=~/.rbenv/bin:~/.rbenv/shims:$PATH
 
   # if this ruby version is not already installed in this user's rbenv, install it
-  su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; rbenv versions" | grep -q $RBENV_VERSION
+  rbenv versions | grep -q $RBENV_VERSION
   if [ $? -ne 0 ]; then
-    su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; CONFIGURE_OPTS=$RBENV_INSTALL_CONFIGURE_OPTS  rbenv install $RBENV_VERSION"
+    CONFIGURE_OPTS=$RBENV_INSTALL_CONFIGURE_OPTS rbenv install $RBENV_VERSION
   fi
 
   # bail if the ruby version doesn't seem to be installed
-  su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; rbenv versions" | grep -q $RBENV_VERSION
+  rbenv versions | grep -q $RBENV_VERSION
   if [ $? -ne 0 ]; then
     echo was not able to "rbenv install $RBENV_VERSION".  Check ~$DEV_USERNAME/.rbenv
     exit 1
   fi
 
   # install bundler if not already installed
-  su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; cd $FACTER_AEOLUS_WORKDIR && rbenv local $RBENV_VERSION"
-  su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; cd $FACTER_AEOLUS_WORKDIR && rbenv rehash"
-  su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; cd $FACTER_AEOLUS_WORKDIR && rbenv which bundle" | grep -q "/$RBENV_VERSION/bin/bundle"
+  cd $FACTER_AEOLUS_WORKDIR && rbenv local $RBENV_VERSION
+  cd $FACTER_AEOLUS_WORKDIR && rbenv rehash
+  cd $FACTER_AEOLUS_WORKDIR && rbenv which bundle | grep -q "/$RBENV_VERSION/bin/bundle"
   if [ $? -ne 0 ]; then
-    su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; cd $FACTER_AEOLUS_WORKDIR && gem install bundler"
-    su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; cd $FACTER_AEOLUS_WORKDIR && rbenv rehash"
+    cd $FACTER_AEOLUS_WORKDIR && gem install bundler
+    cd $FACTER_AEOLUS_WORKDIR && rbenv rehash
 
     # sanity check install of bundler
-    su $DEV_USERNAME -l -c "export PATH=$DEV_USERNAME_PATH_PREFIX:\`echo \$PATH\`; cd $FACTER_AEOLUS_WORKDIR && rbenv which bundle" | grep -q "/$RBENV_VERSION/bin/bundle"
+    cd $FACTER_AEOLUS_WORKDIR && rbenv which bundle | grep -q "/$RBENV_VERSION/bin/bundle"
     if [ $? -ne 0 ]; then
       echo "gem install bundler in rbenv for version $RBENV_VERSION did not appear to succeed"
       exit 1
@@ -213,19 +216,15 @@ if [ "x$RBENV_VERSION" != "x" ]; then
   export FACTER_RBENV_HOME=`echo $thehomedir`/.rbenv
 fi
 
-getent group | grep -q -P '^puppet:'
+sudo getent group | grep -q -P '^puppet:'
 if [ $? -ne 0 ]; then
   # workaround puppet bug http://projects.puppetlabs.com/issues/9862
-  groupadd puppet
+  sudo groupadd puppet
 fi
 
-# First run as root to install needed dependencies
-cd dev-tools
-puppet apply -d --modulepath=. test.pp
-
-# Run same command as a non-root user (e.g., test) to install repos,
-# configure and start up conductor
-su $DEV_USERNAME -c "puppet apply -d --modulepath=. test.pp --no-report"
+# install repos, configure and start up conductor
+cd $WORKDIR/dev-tools
+puppet apply -d --modulepath=. test.pp --no-report
 
 # Arbitrary post-script commmand to execute
 # (useful for say, seeding provider accounts)

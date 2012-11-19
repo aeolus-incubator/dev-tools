@@ -50,6 +50,10 @@ if `grep -qs -P 'Fedora release 17' /etc/fedora-release`; then
   os=f17
 fi
 
+if [ -f /etc/debian_version ]; then
+  os=debian
+fi
+
 if [ "$os" = "unsupported" ]; then
   echo This script has not been tested outside of EL6, Fedora 16
   echo and Fedora 17. You will need to install development
@@ -59,6 +63,11 @@ if [ "$os" = "unsupported" ]; then
   read waiting
 fi
 
+#deb-based systems
+if [ "$os" = "debian" ];then
+  sudo apt-get install -y  build-essential git curl libxslt1-dev libxml2-dev zlib1g zlib1g-dev sqlite3 libsqlite3-dev libffi-dev libssl-dev libreadline-dev
+#rpm-based stuff
+else
 # Check if gcc rpm is installed
 if ! `rpm -q --quiet gcc`; then
   sudo yum install -y gcc
@@ -82,6 +91,7 @@ fi
 # Check if ruby-devel rpm is installed
 if ! `rpm -q --quiet ruby-devel`; then
   sudo yum install -y ruby-devel
+fi
 fi
 
 # Install the json and puppet gems if they're not already installed

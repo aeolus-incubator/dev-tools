@@ -2,21 +2,21 @@ class bundler::install {
 
   if $rbenv_version == undef {
     # not using rbenv, install bundler system-wide
-    package { ["ruby-devel",
-               "gcc",
-               "gcc-c++",
-               "make"]: }
+    $ruby_devel = $osfamily ? {
+	Debian => "ruby1.9.1-dev",
+	RedHat => ["ruby-devel", "rubygems"]
+	}
+    $build_requires = $osfamily ? {
+	Debian => build-essential,
+	RedHat => ["gcc", "gcc-c++", "make"]
+	}
+    package { [$ruby_devel,
+               $build_requires
+              ]: }
 
-    if  $lsbdistid == 'RedHatEnterpriseServer' and $lsbmajdistrelease == '6' {
-      package { ["rubygems"]: }
-      exec { "gem install bundler":
-           cwd => "${aeolus_workdir}",
-           command => "gem install bundler",
-           require => Package["rubygems"],
-            unless =>  "gem list bundler | grep -q bundler" }
-
-    } else {
-      package { ["rubygem-bundler"]: }
+    package { 'bundler' :
+	ensure => 'installed',
+	provider => 'gem',
     }
   }
 }

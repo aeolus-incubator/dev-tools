@@ -66,6 +66,9 @@ fi
 #deb-based systems
 if [ "$os" = "debian" ];then
   sudo apt-get install -y  build-essential git curl libxslt1-dev libxml2-dev zlib1g zlib1g-dev sqlite3 libsqlite3-dev libffi-dev libssl-dev libreadline-dev
+
+# adding the ruby stuff as a distinct step so we can conditionalize this a bit better later
+  sudo apt-get install -y ruby1.9.1 ruby1.9.1-dev libruby1.9.1
 #rpm-based stuff
 else
 # Check if gcc rpm is installed
@@ -92,22 +95,6 @@ fi
 if ! `rpm -q --quiet ruby-devel`; then
   sudo yum install -y ruby-devel
 fi
-fi
-
-# Install the json and puppet gems if they're not already installed
-if [ `gem list -i json` = "false" ]; then
-  echo Installing json gem
-  gem install json
-fi
-if [ `gem list -i facter` = "false" ]; then
-  echo Installing facter gem
-  # installing a slightly older version of facter to work around an issue like
-  # Error: Could not run: Could not retrieve facts for <hostame>: undefined method `enum_lsdev' for Facter::Util::Processor:Module
-  gem install facter -v 1.6.13
-fi
-if [ `gem list -i puppet` = "false" ]; then
-  echo Installing puppet gem
-  gem install puppet
 fi
 
 # Set default Deltacloud, ImageFactory, and Image Warehouse values
@@ -217,6 +204,28 @@ if [ "x$RBENV_VERSION" != "x" ]; then
   eval thehomedir=~
   export FACTER_RBENV_HOME=`echo $thehomedir`/.rbenv
 fi
+
+# Install the json and puppet gems if they're not already installed
+if [ `gem list -i json` = "false" ]; then
+  echo Installing json gem
+  sudo gem install json
+fi
+if [ `gem list -i facter` = "false" ]; then
+  echo Installing facter gem
+  # installing a slightly older version of facter to work around an issue like
+  # Error: Could not run: Could not retrieve facts for <hostame>: undefined method `enum_lsdev' for Facter::Util::Processor:Module
+  sudo gem install facter -v 1.6.13
+fi
+if [ `gem list -i puppet` = "false" ]; then
+  echo Installing puppet gem
+  sudo gem install puppet
+fi
+
+if [ `gem list -i bundler` = "false" ]; then
+  echo Installing bundler gem
+  sudo gem install bundler
+fi
+
 
 sudo getent group | grep -q -P '^puppet:'
 if [ $? -ne 0 ]; then

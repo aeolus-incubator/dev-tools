@@ -25,6 +25,52 @@ fi
 # specified ruby version locally in ~/.rbenv for $DEV_USERNAME
 # export RBENV_VERSION=1.9.3-p194
 
+# Set default Deltacloud, ImageFactory, and Image Warehouse values
+# (for RH network) if they're not already in the environment
+if [ "x$FACTER_IWHD_URL" = "x" ]; then
+  export FACTER_IWHD_URL=http://localhost:9090
+fi
+if [ "x$FACTER_DELTACLOUD_URL" = "x" ]; then
+  export FACTER_DELTACLOUD_URL=http://localhost:3002/api
+fi
+if [ "x$FACTER_IMAGEFACTORY_URL" = "x" ]; then
+  export FACTER_IMAGEFACTORY_URL=https://localhost:8075/imagefactory
+fi
+
+# Create some default OAuth values
+if [ "x$FACTER_OAUTH_JSON_FILE" = "x" ]; then
+  export FACTER_OAUTH_JSON_FILE=/tmp/oauth.json
+  if [ ! -e $FACTER_OAUTH_JSON_FILE ]; then
+
+    # The next command is more here for illustrative purposes and to
+    # allow bootstrap.sh to succeed.  The values in oauth.json should
+    # correspond to existing credentials in an image factory and image
+    # warehouse install.
+    #
+    # Note that after bootstrap.sh runs (and your development is set
+    # up), you can always edit conductor/src/config/settings.yml and
+    # conductor/src/config/oauth.json to reflect updated image factory
+    # and image warehouse credentials.
+    echo -n '{"iwhd":{"consumer_secret":"/Bv2mvBusak2HoCJXUwXIogMhPrkjIjR","consumer_key":"G9xILgFMXZ4lEsQgO1CG6ujErGKwA6Cp"},"factory":{"consumer_secret":"ieqL8ojxPQBvKwCh3m36Fc6on4B+SHB/","consumer_key":"LfiaAIMFP0ASr3VGrbCDjQn1bQL81+SK"}}' > $FACTER_OAUTH_JSON_FILE
+  fi
+fi
+
+# Optional environment variables (sample values are given below)
+#
+# Note that master is the default branch cloned from each of the three
+# projects if a _BRANCH is not specified.
+#
+# export FACTER_AEOLUS_CLI_BRANCH=0.5.x
+# export FACTER_AEOLUS_IMAGE_RUBYGEM_BRANCH=0.3-maint
+# export FACTER_CONDUCTOR_BRANCH=0.10.x
+#
+# Pull requests must be integers
+#
+# export FACTER_AEOLUS_CLI_PULL_REQUEST=6
+# export FACTER_AEOLUS_IMAGE_RUBYGEM_PULL_REQUEST=7
+# export FACTER_CONDUCTOR_PULL_REQUEST=47
+#
+
 if `netstat -tlpn | grep -q -P "\:$FACTER_CONDUCTOR_PORT\\s"`; then
   echo "A process is already listening on port $FACTER_CONDUCTOR_PORT.  Aborting"
   exit 1
@@ -55,104 +101,62 @@ if [ -f /etc/debian_version ]; then
 fi
 
 if [ "$os" = "unsupported" ]; then
-  echo This script has not been tested outside of EL6, Fedora 16
-  echo and Fedora 17. You will need to install development
-  echo libraries and set up postgres manually.
+  echo This script has not been tested outside of EL6, Fedora 16,
+  echo Fedora 17 or debian. You will need to install development
+  echo libraries manually.
   echo
   echo Press Control-C to quit, or ENTER to continue
   read waiting
 fi
 
-#deb-based systems
+# install dependencies for fedora/rhel/centos
+if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "el6" ]; then
+  depends="git"
+
+  # general ruby deps needed to roll your own ruby or build extensions
+  depends="$depends gcc make"
+
+  # Conductor-specific deps
+  depends="$depends libffi-devel"  #ffi
+  depends="$depends libxml2-devel" #nokogiri
+  depends="$depends libxslt-devel" #nokogiri
+
+  # TODO don't need this if using postgres
+  depends="$depends sqlite-devel"  #sqlite3
+
+  if [ "x$RBENV_VERSION" = "x" ]; then
+    # additional dependencies if using system ruby and not rbenv
+    depends="$depends rubygems ruby-devel gcc-c++"
+    if [ $os != "el6" ]; then
+      depends="$depends rubygem-bundler"
+    fi
+  fi
+
+  for dep in `echo $depends`; do
+    if ! `rpm -q --quiet --nodigest $dep`; then
+      sudo yum install -y $dep
+    fi
+    # sanity check that it just installed
+    if ! `rpm -q --quiet --nodigest $dep`; then
+      echo "ABORTING:  FAILED TO INSTALL $dep"
+      exit 1
+    fi
+  done
+fi
+
 if [ "$os" = "debian" ];then
-  sudo apt-get install -y  build-essential git curl libxslt1-dev libxml2-dev zlib1g zlib1g-dev sqlite3 libsqlite3-dev libffi-dev libssl-dev libreadline-dev
+  sudo apt-get install -y build-essential git curl libxslt1-dev libxml2-dev zlib1g zlib1g-dev sqlite3 libsqlite3-dev libffi-dev libssl-dev libreadline-dev
 
 # adding the ruby stuff as a distinct step so we can conditionalize this a bit better later
+#   --just throw in a   if [ "x$RBENV_VERSION" != "x" ]; then    ?
   sudo apt-get install -y ruby1.9.1 ruby1.9.1-dev libruby1.9.1
-#rpm-based stuff
-else
-# Check if gcc rpm is installed
-if ! `rpm -q --quiet gcc`; then
-  sudo yum install -y gcc
 fi
 
-# Check if make rpm is installed
-if ! `rpm -q --quiet make`; then
-  sudo yum install -y make
-fi
 
-# Check if git rpm is installed
-if ! `rpm -q --quiet git`; then
-  sudo yum install -y git
+mkdir -p $FACTER_AEOLUS_WORKDIR
+if [ ! -d $FACTER_AEOLUS_WORKDIR ]; then
+  "ABORTING.  Could not create directory $FACTER_AEOLUS_WORKDIR"
 fi
-
-# Check if rubygems rpm is installed
-if ! `rpm -q --quiet rubygems`; then
-  sudo yum install -y rubygems
-fi
-
-# Check if ruby-devel rpm is installed
-if ! `rpm -q --quiet ruby-devel`; then
-  sudo yum install -y ruby-devel
-fi
-fi
-
-# Set default Deltacloud, ImageFactory, and Image Warehouse values
-# (for RH network) if they're not already in the environment
-if [ "x$FACTER_IWHD_URL" = "x" ]; then
-  export FACTER_IWHD_URL=http://localhost:9090
-fi
-if [ "x$FACTER_DELTACLOUD_URL" = "x" ]; then
-  export FACTER_DELTACLOUD_URL=http://localhost:3002/api
-fi
-if [ "x$FACTER_IMAGEFACTORY_URL" = "x" ]; then
-  export FACTER_IMAGEFACTORY_URL=https://localhost:8075/imagefactory
-fi
-
-# Create some default OAuth values
-if [ "x$FACTER_OAUTH_JSON_FILE" = "x" ]; then
-  export FACTER_OAUTH_JSON_FILE=/etc/aeolus-conductor/oauth.json
-  if [ ! -e $FACTER_OAUTH_JSON_FILE ]; then
-    sudo mkdir -p /etc/aeolus-conductor
-
-    # The next command is more here for illustrative purposes and to
-    # allow bootstrap.sh to succeed.  The values in oauth.json should
-    # correspond to existing credentials in an image factory and image
-    # warehouse install.
-    #
-    # Note that after bootstrap.sh runs (and your development is set
-    # up), you can always edit conductor/src/config/settings.yml and
-    # conductor/src/config/oauth.json to reflect updated image factory
-    # and image warehouse credentials.
-    sudo echo -n '{"iwhd":{"consumer_secret":"/Bv2mvBusak2HoCJXUwXIogMhPrkjIjR","consumer_key":"G9xILgFMXZ4lEsQgO1CG6ujErGKwA6Cp"},"factory":{"consumer_secret":"ieqL8ojxPQBvKwCh3m36Fc6on4B+SHB/","consumer_key":"LfiaAIMFP0ASr3VGrbCDjQn1bQL81+SK"}}' > /etc/aeolus-conductor/oauth.json
-  fi
-fi
-
-# Optional environment variables (sample values are given below)
-#
-# Note that master is the default branch cloned from each of the three
-# projects if a _BRANCH is not specified.
-#
-# export FACTER_AEOLUS_CLI_BRANCH=0.5.x
-# export FACTER_AEOLUS_IMAGE_RUBYGEM_BRANCH=0.3-maint
-# export FACTER_CONDUCTOR_BRANCH=0.10.x
-#
-# Pull requests must be integers
-#
-# export FACTER_AEOLUS_CLI_PULL_REQUEST=6
-# export FACTER_AEOLUS_IMAGE_RUBYGEM_PULL_REQUEST=7
-# export FACTER_CONDUCTOR_PULL_REQUEST=47
-#
-mkdir -p $WORKDIR
-cd $WORKDIR
-if [ ! -d dev-tools ]; then
- git clone https://github.com/aeolus-incubator/dev-tools.git
-else
- echo 'dev-tools DIRECTORY ALREADY EXISTS, LEAVING IN TACT.'
-fi
-
-# TODO check dev-tools directory (and thus also parent $WORKDIR) exist
-# at this point or bail
 
 if [ "x$RBENV_VERSION" != "x" ]; then
 
@@ -205,27 +209,50 @@ if [ "x$RBENV_VERSION" != "x" ]; then
   export FACTER_RBENV_HOME=`echo $thehomedir`/.rbenv
 fi
 
-# Install the json and puppet gems if they're not already installed
-if [ `gem list -i json` = "false" ]; then
-  echo Installing json gem
-  sudo gem install json
-fi
-if [ `gem list -i facter` = "false" ]; then
-  echo Installing facter gem
-  # installing a slightly older version of facter to work around an issue like
-  # Error: Could not run: Could not retrieve facts for <hostame>: undefined method `enum_lsdev' for Facter::Util::Processor:Module
-  sudo gem install facter -v 1.6.13
-fi
-if [ `gem list -i puppet` = "false" ]; then
-  echo Installing puppet gem
-  sudo gem install puppet
+gem_installs="json facter puppet"
+if [ $os = "el6" ]; then
+  gem_installs="$gem_installs bundler"
 fi
 
-if [ `gem list -i bundler` = "false" ]; then
-  echo Installing bundler gem
-  sudo gem install bundler
+# use a slightly older version of facter because latest stable of
+# 1.6.14 causes an error like:
+# Error: Could not run: Could not retrieve facts for <hostame>: undefined method `enum_lsdev' for Facter::Util::Processor:Module
+declare -A gem_versions
+gem_versions["facter"]=1.6.13
+
+for the_gem in `echo $gem_installs`; do
+  if [ `gem list -i $the_gem` = "false" ]; then
+    cmd="gem install $the_gem"
+    if [ "x$RBENV_VERSION" = "x" ]; then
+      # TODO perhaps determine a way to install gem local to current
+      # user instead.  For now, do a system install of the gem when
+      # using system ruby
+      cmd="sudo $cmd"
+    fi
+    if  [[ ${gem_versions[$the_gem]} ]]; then
+        cmd="$cmd -v ${gem_versions[$the_gem]}"
+    fi
+    $cmd
+    if [ `gem list -i $the_gem` = "false" ]; then
+      echo "ABORTING.  FAILED TO INSTALL $the_gem"
+      exit 1
+    fi
+  fi
+done
+
+# These next few lines are usuall a no-op since WORKDIR
+# and FACTER_AEOLUS_WORKDIR are usually the same
+mkdir -p $WORKDIR
+if [ ! -d $WORKDIR ]; then
+  "ABORTING.  Could not create directory $WORKDIR"
 fi
 
+cd $WORKDIR
+if [ ! -d dev-tools ]; then
+ git clone https://github.com/aeolus-incubator/dev-tools.git
+else
+ echo 'dev-tools DIRECTORY ALREADY EXISTS, LEAVING IN TACT.'
+fi
 
 sudo getent group | grep -q -P '^puppet:'
 if [ $? -ne 0 ]; then

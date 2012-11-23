@@ -57,6 +57,11 @@ fi
 
 # Optional environment variables (sample values are given below)
 #
+# If the following env var is defined, checkout and start up
+# deltacloud locally rather than use an existing installation.
+# export SETUP_LOCAL_DELTACLOUD_RELEASE=release-1.0.5
+# export SETUP_LOCAL_DELTACLOUD_PORT=3002
+#
 # Note that master is the default branch cloned from each of the three
 # projects if a _BRANCH is not specified.
 #
@@ -130,6 +135,11 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "el6" ]; then
     if [ $os != "el6" ]; then
       depends="$depends rubygem-bundler"
     fi
+  fi
+
+  if [ "x$SETUP_LOCAL_DELTACLOUD_RELEASE" != "x" ]; then
+      depends="$depends bison flex gcc-c++ libxslt openssl-devel"
+      depends="$depends readline-devel zlib-devel"
   fi
 
   for dep in `echo $depends`; do
@@ -239,6 +249,29 @@ for the_gem in `echo $gem_installs`; do
     fi
   fi
 done
+
+# Setup the local deltacloud instance, if the user wants one
+if [ "x$SETUP_LOCAL_DELTACLOUD_RELEASE" != "x" ]; then
+  cd $FACTER_AEOLUS_WORKDIR
+  if [ -d deltacloud ]; then
+    echo 'INFO deltacloud dir already exists'
+  else
+    git clone https://git-wip-us.apache.org/repos/asf/deltacloud.git
+  fi
+  cd deltacloud
+  git checkout $SETUP_LOCAL_DELTACLOUD_RELEASE
+  cd server
+  bundle install --path ../bundle
+  [ -z $SETUP_LOCAL_DELTACLOUD_PORT ] && SETUP_LOCAL_DELTACLOUD_PORT=3002
+  if `netstat -tlpn | grep -q -P "\:$SETUP_LOCAL_DELTACLOUD_PORT\\s"`; then
+    echo "WARNING A process is already listening on port $SETUP_LOCAL_DELTACLOUD_PORT"
+    echo "        Not starting up deltacloud"
+  else
+    echo "* Starting up deltacloudd on port $SETUP_LOCAL_DELTACLOUD_PORT"
+    # TODO: setup logging by using a custom config file
+    bundle exec "bin/deltacloudd -i "mock" -p $SETUP_LOCAL_DELTACLOUD_PORT" >log/deltacloud.log 2>&1 &
+  fi
+fi
 
 # These next few lines are usuall a no-op since WORKDIR
 # and FACTER_AEOLUS_WORKDIR are usually the same

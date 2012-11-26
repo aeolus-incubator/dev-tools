@@ -1,6 +1,5 @@
 class conductor::setup::dev {
   require conductor::config::dev
-  require conductor::setup::dev_depend
 
   exec { "patch Gemfile to point to local aeolus-image-rubygem":
     cwd => "${aeolus_workdir}/conductor/src",

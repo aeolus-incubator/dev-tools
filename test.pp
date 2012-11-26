@@ -10,18 +10,14 @@ class aeolus_dev_tools_path {
     $aeolus_workdir = '/tmp'
   }
   if $oauth_json_file == undef {
-     $oauth_json_file = "/etc/aeolus-conductor/oauth.json"
+     $oauth_json_file = "/tmp/oauth.json"
   }
 }
 
 class aeolus_dev_tools_install inherits aeolus_dev_tools_path {
-  if $id == 'root' {
-    # only install system dependencies
-    class { conductor: dev => true }
-  } else {
-    class { aeolus-image-rubygem: dev => true } -> class { conductor: dev => true }
-    class { aeolus-cli: dev => true }
-  }
+  class { conductor: dev => true }
+  class { aeolus-image-rubygem: dev => true } -> class { conductor: dev => true }
+  class { aeolus-cli: dev => true }
 }
 
 class {'aeolus_dev_tools_install':}

@@ -8,19 +8,40 @@ requests, and ruby versions.
 
 # Quick Start
 
-As the root user on a host you want to install Aeolus on:
+You don't need to be root to execute bootstrap.sh but make sure the
+following packages are installed or the script may fail:
 
-  If you want to use system ruby:
+    # yum install gcc \
+    gcc-c++ \
+    make \
+    git \
+    lsof \
+    rubygems \
+    ruby-devel \
+    zlib-devel \
+    openssl-devel
 
-    # curl https://raw.github.com/aeolus-incubator/dev-tools/master/bootstrap.sh | /bin/sh -x
+    # yum install libffi-devel \
+    libxml2-devel \
+    libxslt-devel \
+    sqlite-devel
+
+If you want to use a specific ruby version via rbenv (recommended path):
+
+    $ export RBENV_VERSION=1.9.3-p327; curl https://raw.github.com/aeolus-incubator/dev-tools/master/bootstrap.sh | /bin/sh -x
     (lots of output here)
 
-  If you want to use a specific ruby version via rbenv:
+If you want to use system ruby instead:
 
-    # export RBENV_VERSION=1.9.3-p194; curl https://raw.github.com/aeolus-incubator/dev-tools/master/bootstrap.sh | /bin/sh -x
+    $ curl https://raw.github.com/aeolus-incubator/dev-tools/master/bootstrap.sh | /bin/sh -x
     (lots of output here)
 
-This should work on rhel6, fc16 and fc17 (the script's env variables +
+In case you're using the system wide version of ruby, not that
+the script also needs to install some gems so you may need
+to configure you user's environment to allow for gems installation
+in your homedir. More info at: http://docs.rubygems.org/read/chapter/3
+
+The script should work on el6, fc16 and fc17 (the script's env variables +
 oauth.json are pointing to existing imagefactory/iwhd/deltacloud
 instances).
 
@@ -29,12 +50,11 @@ environment for the system user test in the directory /tmp/test and
 starting up Conductor on port 3000.  To override these settings, set
 the relevant environment variables before running bootstrap.sh, e.g.:
 
-    export DEV_USERNAME=myuser
     export WORKDIR=/home/myuser/cloud-dev
     export FACTER_CONDUCTOR_PORT=3001
 
 There are other useful environment variables described further in this
-document, for example to point to existing deltacloud, image factory
+document, for example to point to existing deltacloud, imagefactory
 and/or image warehouse instances, or to apply a pull request.
 
 # bootstrap.sh: Overview and Defaults
@@ -44,11 +64,6 @@ projects, configures conductor (including specifying a local sqlite
 database) and starts it up.  There are a number of environment
 variables you may wish to define, otherwise they get the following
 defaults:
-
-  The user that owns the git checkouts, and that we use to run
-  bundler, rake and rails commands (ultimately firing up conductor):
-
-    DEV_USERNAME=test
 
   Parent dir where the dev-tools puppet code gets checked out to:
 
@@ -71,13 +86,13 @@ defaults:
 
   URL's to API's that conductor relies on, namely deltacloud, image
   factory, and image warehouse.  A valid oauth.json also must be
-  specified, which contains credentials specific to your Image Factory
-  and Image Warehouse instance.
+  specified, which contains credentials specific to your imagefactory
+  and image warehouse instance.
 
     FACTER_DELTACLOUD_URL=http://localhost:3002/api
     FACTER_IMAGEFACTORY_URL=https://localhost:8075/imagefactory
     FACTER_IWHD_URL=http://localhost:9090
-    FACTER_OAUTH_JSON_FILE=/etc/aeolus-conductor/oauth.json
+    FACTER_OAUTH_JSON_FILE=/tmp/oauth.json
 
   Git branches that are checked out:
 
@@ -96,23 +111,20 @@ defaults:
 
 # The Development Environment
 
-Running bootstrap.sh as root creates a development environment for the
-system user $DEV_USERNAME which contains the following directory
-structure:
+bootstrap.sh creates a development environment which contains the
+following directory structure:
 
     $WORKDIR/
       conductor/            # git checkout of https://github.com/aeolusproject/conductor
       aeolus-cli/           # git checkout of https://github.com/aeolusproject/aeolus-cli
       aeolus-image-rubygem/ # git checkout of https://github.com/aeolusproject/aeolus-image-rubygem
 
-While bootstrap.sh must be run as root to install needed system
-dependencies (e.g., libxml2 to build the nokogiri gem), the
-environment it creates is intended to be used by the non-privileged
-user, $DEV_USERNAME.
+The environment it creates is intended to be used by the non-privileged
+user who launched the script.
 
-Therefore, once the script completes, you can open up a terminal as
-the $DEV_USERNAME user, cd into your $WORKDIR and get to work.  For
-instance, you could do:
+Therefore, once the script completes, you can open up a terminal
+cd into your $WORKDIR and get to work (assuming rbenv is set correctly).
+For instance, you could do:
 
     $ cd $WORKDIR/conductor/src
     $ bundle exec rake db:setup
@@ -133,12 +145,12 @@ not).
 # Using rbenv (optional)
 
 If $RBENV_VERSION is defined when bootstrap.sh runs
-(e.g. $RBENV_VERSION=1.9.3-p194), rbenv will be installed (if
-necessary) to $DEV_USERNAME's home directory, and the specified ruby
+(e.g. $RBENV_VERSION=1.9.3-p327), rbenv will be installed (if
+necessary) into the user home directory and the specified ruby
 version will be built and installed therein.
 
-No changes to $DEV_USERNAME's shell are made, intentionally.  Rbenv
-users often update their shell behaviour, for example with:
+No changes to the user shell are made, intentionally.  Rbenv
+users are supposed to update their shell behaviour, for example with:
 
     $ echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bash_profile
     $ echo 'eval "$(rbenv init -)"' >> ~/.bash_profile
@@ -180,8 +192,7 @@ The above also works well in an emacs shell.  ;-)
 
 bootstrap.sh makes heavy use of the puppet definitions within this
 repository to create and configure
-conductor/aeolus-cli/aeolus-image-rubygem.  In its current form,
-puppet (and its ruby dependency) are installed system-wide if needed.
+conductor/aeolus-cli/aeolus-image-rubygem.
 Note that even though system ruby may be installed to run puppet,
 rbenv's ruby (if specified) is used to for all the bundle, rake and
 rails work.

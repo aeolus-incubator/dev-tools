@@ -140,15 +140,15 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "el6" ]; then
 
   if [ "x$RBENV_VERSION" = "x" ]; then
     # additional dependencies if using system ruby and not rbenv
-    depends="$depends rubygems ruby-devel gcc-c++"
+    depends="$depends rubygems ruby-devel"
     if [ $os != "el6" ]; then
       depends="$depends rubygem-bundler"
     fi
   fi
 
   if [ "x$SETUP_LOCAL_DELTACLOUD_RELEASE" != "x" ]; then
-      depends="$depends bison flex gcc-c++ libxslt openssl-devel"
-      depends="$depends readline-devel zlib-devel"
+      depends="$depends bison flex libxslt openssl-devel"
+      depends="$depends readline-devel"
   fi
 
   if [ "$HAVESUDO" = "1" ]; then

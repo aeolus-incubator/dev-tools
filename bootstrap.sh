@@ -156,12 +156,17 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "el6" ]; then
       if ! `rpm -q --quiet --nodigest $dep`; then
         sudo yum install -y $dep
       fi
+      # sanity check that it just installed
+      if ! `rpm -q --quiet --nodigest $dep`; then
+        echo "ABORTING:  FAILED TO INSTALL $dep"
+        exit 1
+      fi
     done
   else
     for dep in `echo $depends`; do
       # sanity check that it just installed
       if ! `rpm -q --quiet --nodigest $dep`; then
-        echo "ABORTING:  FAILED TO INSTALL $dep"
+        echo "ABORTING:  $dep is not installed"
         exit 1
       fi
     done

@@ -43,17 +43,18 @@ if [ "x$remove_packages" = "x1" ]; then
     depends="git"
     
     # general ruby deps needed to roll your own ruby or build extensions
-    depends="$depends gcc make"
+    depends="$depends gcc make zlib-devel"
     
     # Conductor-specific deps
     depends="$depends libffi-devel"  #ffi
     depends="$depends libxml2-devel" #nokogiri
     depends="$depends libxslt-devel" #nokogiri
-    
+    depends="$depends gcc-c++" #eventmachine
+   
     # TODO don't need this if using postgres
     depends="$depends sqlite-devel"  #sqlite3
     
-    depends="$depends rubygems ruby-devel gcc-c++"
+    depends="$depends rubygems ruby-devel"
     if [ $os != "el6" ]; then 
       depends="$depends rubygem-bundler"
     fi

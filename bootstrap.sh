@@ -1,7 +1,9 @@
 #!/bin/bash
 
-# Set this to 1 if you do have sudo permissions
-HAVESUDO=0
+# Set this to 0 if you don't have (or don't want to use) sudo permissions
+if [ "x$HAVESUDO" = "x" ]; then
+  HAVESUDO=1
+fi
 
 # Setup a development environment for conductor, aeolus-image-rubygem
 # and aeolus-cli.  Configure conductor to use an external

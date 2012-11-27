@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Set this to 1 if you do have sudo permissions
+HAVESUDO=0
+
 # Setup a development environment for conductor, aeolus-image-rubygem
 # and aeolus-cli.  Configure conductor to use an external
 # imagefactory/iwhd/deltacloud by setting env variables and
@@ -23,7 +26,7 @@ fi
 # If you want to use system ruby for the aeolus projects, do not
 # define this env var.  Otherwise, use (and install if necessary)
 # specified ruby version locally in ~/.rbenv for $DEV_USERNAME
-# export RBENV_VERSION=1.9.3-p194
+# export RBENV_VERSION=1.9.3-p327
 
 # Set default Deltacloud, ImageFactory, and Image Warehouse values
 # (for RH network) if they're not already in the environment
@@ -76,7 +79,7 @@ fi
 # export FACTER_CONDUCTOR_PULL_REQUEST=47
 #
 
-if `netstat -tlpn | grep -q -P "\:$FACTER_CONDUCTOR_PORT\\s"`; then
+if `netstat -tln | grep -q -P "\:$FACTER_CONDUCTOR_PORT\\s"`; then
   echo "A process is already listening on port $FACTER_CONDUCTOR_PORT.  Aborting"
   exit 1
 fi
@@ -119,12 +122,16 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "el6" ]; then
   depends="git"
 
   # general ruby deps needed to roll your own ruby or build extensions
-  depends="$depends gcc make"
+  depends="$depends gcc make zlib-devel"
 
   # Conductor-specific deps
   depends="$depends libffi-devel"  #ffi
   depends="$depends libxml2-devel" #nokogiri
   depends="$depends libxslt-devel" #nokogiri
+  depends="$depends gcc-c++" #eventmachine
+
+  # Puppet and puppet modules deps
+  depends="$depends openssl-devel lsof"
 
   # TODO don't need this if using postgres
   depends="$depends sqlite-devel"  #sqlite3
@@ -142,36 +149,42 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "el6" ]; then
       depends="$depends readline-devel zlib-devel"
   fi
 
-  for dep in `echo $depends`; do
-    if ! `rpm -q --quiet --nodigest $dep`; then
-      sudo yum install -y $dep
-    fi
-    # sanity check that it just installed
-    if ! `rpm -q --quiet --nodigest $dep`; then
-      echo "ABORTING:  FAILED TO INSTALL $dep"
-      exit 1
-    fi
-  done
+  if [ "$HAVESUDO" = "1" ]; then
+    for dep in `echo $depends`; do
+      if ! `rpm -q --quiet --nodigest $dep`; then
+        sudo yum install -y $dep
+      fi
+    done
+  else
+    for dep in `echo $depends`; do
+      # sanity check that it just installed
+      if ! `rpm -q --quiet --nodigest $dep`; then
+        echo "ABORTING:  FAILED TO INSTALL $dep"
+        exit 1
+      fi
+    done
+  fi
 fi
 
-if [ "$os" = "debian" ];then
-  sudo apt-get install -y build-essential git curl libxslt1-dev libxml2-dev zlib1g zlib1g-dev sqlite3 libsqlite3-dev libffi-dev libssl-dev libreadline-dev
+if [ "$os" = "debian" ]; then
+  if [ "$HAVESUDO" = "1" ]; then
+    sudo apt-get install -y build-essential git curl libxslt1-dev libxml2-dev zlib1g zlib1g-dev sqlite3 libsqlite3-dev libffi-dev libssl-dev libreadline-dev lsof
 
-# adding the ruby stuff as a distinct step so we can conditionalize this a bit better later
-#   --just throw in a   if [ "x$RBENV_VERSION" != "x" ]; then    ?
-  sudo apt-get install -y ruby1.9.1 ruby1.9.1-dev libruby1.9.1
+    # adding the ruby stuff as a distinct step so we can conditionalize this a bit better later
+    #   --just throw in a   if [ "x$RBENV_VERSION" != "x" ]; then    ?
+    sudo apt-get install -y ruby1.9.1 ruby1.9.1-dev libruby1.9.1
+  fi
 fi
-
 
 mkdir -p $FACTER_AEOLUS_WORKDIR
 if [ ! -d $FACTER_AEOLUS_WORKDIR ]; then
-  "ABORTING.  Could not create directory $FACTER_AEOLUS_WORKDIR"
+  echo "ABORTING.  Could not create directory $FACTER_AEOLUS_WORKDIR"
 fi
 
 if [ "x$RBENV_VERSION" != "x" ]; then
 
   # only used for "rbenv install" in the Fedora-(16|17) / ruby 1.8.7 case
-  if [ "xRBENV_INSTALL_CONFIGURE_OPTS" != "x" ]; then
+  if [ "x$RBENV_INSTALL_CONFIGURE_OPTS" = "x" ]; then
     if [ "$os" = "f16" -o "$os" = "f17" ]; then
       if echo $RBENV_VERSION | grep -qs '^1.8.7-' ; then
         RBENV_INSTALL_CONFIGURE_OPTS=--without-dl
@@ -237,7 +250,10 @@ for the_gem in `echo $gem_installs`; do
       # TODO perhaps determine a way to install gem local to current
       # user instead.  For now, do a system install of the gem when
       # using system ruby
-      cmd="sudo $cmd"
+      # http://docs.rubygems.org/read/chapter/3
+      if [ "$HAVESUDO" = "1" ]; then
+        cmd="sudo $cmd"
+      fi
     fi
     if  [[ ${gem_versions[$the_gem]} ]]; then
         cmd="$cmd -v ${gem_versions[$the_gem]}"
@@ -292,11 +308,8 @@ else
   echo 'dev-tools DIRECTORY ALREADY EXISTS, LEAVING IN TACT.'
 fi
 
-sudo getent group | grep -q -P '^puppet:'
-if [ $? -ne 0 ]; then
-  # workaround puppet bug http://projects.puppetlabs.com/issues/9862
-  sudo groupadd puppet
-fi
+echo "Given this puppet bug http://projects.puppetlabs.com/issues/9862"
+echo "you may need to add manually the 'puppet' group to the system in case of errors."
 
 # install repos, configure and start up conductor
 cd $WORKDIR/dev-tools

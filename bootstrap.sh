@@ -292,7 +292,7 @@ if [ "x$SETUP_LOCAL_DELTACLOUD_RELEASE" != "x" ]; then
   else
     echo "* Starting up deltacloudd on port $SETUP_LOCAL_DELTACLOUD_PORT"
     # TODO: setup logging by using a custom config file
-    bundle exec "bin/deltacloudd -i "mock" -p $SETUP_LOCAL_DELTACLOUD_PORT" >log/deltacloud.log 2>&1 &
+    bundle exec "bin/deltacloudd -i \"mock\" -p $SETUP_LOCAL_DELTACLOUD_PORT" >log/deltacloud.log 2>&1 &
   fi
 fi
 

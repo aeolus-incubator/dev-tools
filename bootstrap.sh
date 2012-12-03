@@ -273,6 +273,12 @@ for the_gem in `echo $gem_installs`; do
   fi
 done
 
+# newly installed rbenv/gem binaries require an rbenv rehash to work
+# properly in our $PATH
+if [ "x$RBENV_VERSION" != "x" ]; then
+  cd $FACTER_AEOLUS_WORKDIR && rbenv rehash
+fi
+
 # Setup the local deltacloud instance, if the user wants one
 if [ "x$SETUP_LOCAL_DELTACLOUD_RELEASE" != "x" ]; then
   cd $FACTER_AEOLUS_WORKDIR

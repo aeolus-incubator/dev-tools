@@ -1,14 +1,23 @@
 class conductor::config::dev {
   require conductor::install::dev
 
-  exec { "use sqlite gem":
-    cwd => "${aeolus_workdir}/conductor/src",
-    command => "sed -i s/'pg'/'sqlite3'/ Gemfile"
-  }
+  if $rdbms == 'sqlite' {
+    exec { "use sqlite gem":
+      cwd => "${aeolus_workdir}/conductor/src",
+      command => "sed -i s/'pg'/'sqlite3'/ Gemfile"
+    }
 
-  exec { "sqlite database.yml":
-    cwd => "${aeolus_workdir}/conductor/src",
-    command => "cp config/database.sqlite config/database.yml",
+    exec { "sqlite database.yml":
+      cwd => "${aeolus_workdir}/conductor/src",
+      command => "cp config/database.sqlite config/database.yml",
+    }
+  }
+  elsif $rdbms == 'postgresql' {
+    file{ "${aeolus_workdir}/conductor/src/config/database.yml":
+      content => template("conductor/database.pg"),
+      mode => 640,
+      # mode    => 640, owner => 'root', group => 'aeolus'
+    }
   }
 
   exec { "use established ouath.json if it exists":

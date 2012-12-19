@@ -16,10 +16,16 @@ class conductor::setup::dev {
     require => Exec["patch Gemfile to point to local aeolus-image-rubygem"]
   }
 
+  exec { "create database":
+    cwd => "${aeolus_workdir}/conductor/src",
+    command => "bundle exec rake db:create:all",
+    require => Exec["bundle install"]
+  }
+
   exec { "migrate database":
     cwd => "${aeolus_workdir}/conductor/src",
     command => "bundle exec rake db:migrate",
-    require => Exec["bundle install"]
+    require => Exec["create database"]
   }
 
   exec { "setup database":

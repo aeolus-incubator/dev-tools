@@ -183,13 +183,10 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "el6" ]; then
       fi
     done
 
-## debugging code
-echo Install list: $install_list
-
     # Install the needed packages
     sudo yum install -y $install_list
 
-    # Sanity check the dependencies did install
+    # Verify the dependencies did install
     fail_list=""
     for dep in `echo $depends`; do
       if ! `rpm -q --quiet --nodigest $dep`; then
@@ -197,10 +194,8 @@ echo Install list: $install_list
       fi
     done
 
-## debugging code
-echo Fail list: $fail_list
-
-    if [ "x$fail_list" = "x" ]; then
+    # If anything failed verification, we tell the user and exit
+    if [ "x$fail_list" != "x" ]; then
         echo "ABORTING:  FAILED TO INSTALL $fail_list"
         exit 1
     fi

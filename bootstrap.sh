@@ -173,17 +173,37 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "el6" ]; then
       depends="$depends readline-devel"
   fi
 
+  # If we have sudo, we're able to install missing dependencies
   if [ "$HAVESUDO" = "1" ]; then
+    # Check which dependencies need installing
+    install_list=""
     for dep in `echo $depends`; do
       if ! `rpm -q --quiet --nodigest $dep`; then
-        sudo yum install -y $dep
-      fi
-      # sanity check that it just installed
-      if ! `rpm -q --quiet --nodigest $dep`; then
-        echo "ABORTING:  FAILED TO INSTALL $dep"
-        exit 1
+        install_list="$install_list $dep"
       fi
     done
+
+## debugging code
+echo Install list: $install_list
+
+    # Install the needed packages
+    sudo yum install -y $install_list
+
+    # Sanity check the dependencies did install
+    fail_list=""
+    for dep in `echo $depends`; do
+      if ! `rpm -q --quiet --nodigest $dep`; then
+        fail_list="$fail_list $dep"
+      fi
+    done
+
+## debugging code
+echo Fail list: $fail_list
+
+    if [ "x$fail_list" = "x" ]; then
+        echo "ABORTING:  FAILED TO INSTALL $fail_list"
+        exit 1
+    fi
 
     if [ "$FACTER_RDBMS" = "postgresql" ]; then
 

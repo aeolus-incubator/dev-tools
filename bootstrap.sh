@@ -184,7 +184,9 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "el6" ]; then
     done
 
     # Install the needed packages
-    sudo yum install -y $install_list
+    if [ "x$install_list" != "x" ]; then
+      sudo yum install -y $install_list
+    fi
 
     # Verify the dependencies did install
     fail_list=""

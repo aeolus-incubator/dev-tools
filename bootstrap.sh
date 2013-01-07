@@ -168,22 +168,48 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "el6" ]; then
     fi
   fi
 
+  # Add Deltacloud build dependencies if needed
   if [ "x$SETUP_LOCAL_DELTACLOUD_RELEASE" != "x" ]; then
       depends="$depends bison flex libxslt openssl-devel"
       depends="$depends readline-devel"
+
+    # If the master branch of Deltacloud is requested, we need
+    # to add sqlite-devel as a dependency.  This is because
+    # Deltacloud added new deps after 1.0.5:
+    #   https://mail-archives.apache.org/mod_mbox/deltacloud-dev/201212.mbox/browser
+    if [ "x$SETUP_LOCAL_DELTACLOUD_RELEASE" = "xmaster" ]; then
+        depends="$depends sqlite-devel"
+    fi
   fi
 
+  # If we have sudo, we're able to install missing dependencies
   if [ "$HAVESUDO" = "1" ]; then
+    # Check which dependencies need installing
+    install_list=""
     for dep in `echo $depends`; do
       if ! `rpm -q --quiet --nodigest $dep`; then
-        sudo yum install -y $dep
-      fi
-      # sanity check that it just installed
-      if ! `rpm -q --quiet --nodigest $dep`; then
-        echo "ABORTING:  FAILED TO INSTALL $dep"
-        exit 1
+        install_list="$install_list $dep"
       fi
     done
+
+    # Install the needed packages
+    if [ "x$install_list" != "x" ]; then
+      sudo yum install -y $install_list
+    fi
+
+    # Verify the dependencies did install
+    fail_list=""
+    for dep in `echo $depends`; do
+      if ! `rpm -q --quiet --nodigest $dep`; then
+        fail_list="$fail_list $dep"
+      fi
+    done
+
+    # If anything failed verification, we tell the user and exit
+    if [ "x$fail_list" != "x" ]; then
+        echo "ABORTING:  FAILED TO INSTALL $fail_list"
+        exit 1
+    fi
 
     if [ "$FACTER_RDBMS" = "postgresql" ]; then
 

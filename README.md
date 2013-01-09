@@ -24,13 +24,12 @@ Note, if you do not have or do not wish to use sudo, you can still run
 bootstrap.sh assuming all needed dependencies are installed by defining
 "export HAVESUDO=0" beforehand.
 
-Either of the above commands will work on rhel6, fc16 and fc17.  It
-should also work on ubuntu or debian when specifying an RBENV_VERSION.
-Note, for the local instance of Conductor to be fully functional, some
-env variables (described below) need to point to existing
-imagefactory/iwhd/deltacloud instance URLs and an oauth.json
-credential.  Otherwise, Conductor will still start up but won't be
-very usable.
+Either of the above commands will work on: RHEL 6, Fedora 16/17, and
+Ubuntu 12.04/12.10.  Note, for the local instance of Conductor to be
+fully functional, some env variables (described below) need to point
+to existing imagefactory/iwhd/deltacloud instance URLs and an
+oauth.json credential.  Otherwise, Conductor will still start up but
+won't be very usable.
 
 The default bootstrap.sh behaviour includes creating a development
 environment and starting up Conductor on port 3000.  To override these

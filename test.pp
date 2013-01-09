@@ -1,9 +1,9 @@
 class aeolus_dev_tools_path {
   if $rbenv_home == undef {
-    Exec { path => "/bin:/sbin:/usr/bin:/usr/sbin",
+    Exec { path => "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin",
            logoutput => "on_failure" }
   } else {
-    Exec { path => "$rbenv_home/bin:$rbenv_home/shims:/bin:/sbin:/usr/bin:/usr/sbin",
+    Exec { path => "$rbenv_home/bin:$rbenv_home/shims:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin",
              logoutput => "on_failure" }
   }
   if $aeolus_workdir == undef {

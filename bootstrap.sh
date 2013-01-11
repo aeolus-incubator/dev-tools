@@ -356,7 +356,7 @@ if [ "x$RBENV_VERSION" != "x" ]; then
 fi
 
 gem_installs="json facter puppet"
-if [ $os = "el6" ]; then
+if [ "$os" = "el6" -o "$os" = "debian" ]; then
   gem_installs="$gem_installs bundler"
 fi
 
@@ -376,6 +376,10 @@ for the_gem in `echo $gem_installs`; do
       # http://docs.rubygems.org/read/chapter/3
       if [ "$HAVESUDO" = "1" ]; then
         cmd="sudo $cmd"
+      else
+        echo 'Installing local gems without using rbenv is not currently supported.'
+        echo 'If you want to install gems system-wide using system ruby instead of rbenv, you must be a sudo-enabled user'
+        exit 1
       fi
     fi
     if  [[ ${gem_versions[$the_gem]} ]]; then

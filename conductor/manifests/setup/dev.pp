@@ -1,10 +1,17 @@
 class conductor::setup::dev {
   require conductor::config::dev
 
+  # this next block is going away soon
   exec { "patch Gemfile to point to local aeolus-image-rubygem":
     cwd => "${aeolus_workdir}/conductor/src",
-    onlyif => "test -f ${aeolus_workdir}/aeolus-image-rubygem/aeolus-image-0.6.0.gem",
-    command => "sed -i \"s#:git.*\\\$#:path => '${aeolus_workdir}/aeolus-image-rubygem'#\" Gemfile"
+    onlyif => "test -f ${aeolus_workdir}/aeolus-image-rubygem/aeolus-image-*.gem",
+    command => "sed -i \"s#gem 'aeolus-image', :git.*\\\$#gem 'aeolus-image', :path => '${aeolus_workdir}/aeolus-image-rubygem'#\" Gemfile"
+  }
+
+  exec { "patch Gemfile to point to local tim source":
+    cwd => "${aeolus_workdir}/conductor/src",
+    onlyif => "test -d ${aeolus_workdir}/tim",
+    command => "sed -i \"s#gem 'tim', :git.*\\\$#gem 'tim', :path => '${aeolus_workdir}/tim'#\" Gemfile"
   }
 
   exec { "bundle install":
@@ -13,13 +20,21 @@ class conductor::setup::dev {
     logoutput => on_failure,
     # 15 minute timeout because this can take awhile sometimes
     timeout => 900,
-    require => Exec["patch Gemfile to point to local aeolus-image-rubygem"]
+    require => Exec["patch Gemfile to point to local aeolus-image-rubygem",
+                    "patch Gemfile to point to local tim source"]
+  }
+
+  exec { "configure tim callback url":
+    cwd => "${aeolus_workdir}/conductor/src/config/initializers",
+    onlyif => "test -f ${aeolus_workdir}/conductor/src/config/initializers/tim.rb",
+    command => "sed -i 's#callback_url = \"http://localhost:3000/tim#callback_url = \"http://admin:password@localhost:${conductor_port}/tim#' tim.rb"
   }
 
   exec { "create database":
     cwd => "${aeolus_workdir}/conductor/src",
     command => "bundle exec rake db:create:all",
-    require => Exec["bundle install"]
+    require => Exec["bundle install",
+                     "configure tim callback url"]
   }
 
   exec { "migrate database":

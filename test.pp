@@ -15,7 +15,7 @@ class aeolus_dev_tools_path {
 }
 
 class aeolus_dev_tools_install inherits aeolus_dev_tools_path {
-  class { aeolus-image-rubygem: dev => true } -> class { conductor: dev => true }
+  class { tim: dev => true } -> class { aeolus-image-rubygem: dev => true } -> class { conductor: dev => true }
   class { aeolus-cli: dev => true }
 }
 

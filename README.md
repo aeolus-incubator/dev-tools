@@ -1,9 +1,9 @@
 # Aeolus dev-tools
 
 Use bootstrap.sh to setup a development environment for the Aeolus
-projects conductor, aeolus-image-rubygem, and aeolus-cli, and to
-start up an instance of conductor.  While useful to developers, it
-also provides the capability to quickly test various branches, pull
+projects conductor, aeolus-image-rubygem, and aeolus-cli, and to start
+up an instance of conductor.  While useful to developers, it also
+provides the capability to quickly test various branches, tags, pull
 requests and ruby versions.
 
 # Quick Start
@@ -17,7 +17,7 @@ As a sudo-user on a host you want to install Aeolus on:
 
   If you want to use a specific ruby version via rbenv:
 
-    # export RBENV_VERSION=1.9.3-p327; curl https://raw.github.com/aeolus-incubator/dev-tools/master/bootstrap.sh | /bin/bash -x
+    # export RBENV_VERSION=1.9.3-p362; curl https://raw.github.com/aeolus-incubator/dev-tools/master/bootstrap.sh | /bin/bash -x
     (lots of output here)
 
 Note, if you do not have or do not wish to use sudo, you can still run
@@ -80,7 +80,9 @@ defaults:
     FACTER_IWHD_URL=http://localhost:9090
     FACTER_OAUTH_JSON_FILE=/tmp/oauth.json
 
-  Git branches that are checked out:
+  Git tags, branches or commit hashes that are checked out: (even
+  though the env variables are named "_BRANCH," a git tag or commit
+  hash may be used)
 
     FACTER_AEOLUS_CLI_BRANCH=master
     FACTER_AEOLUS_IMAGE_RUBYGEM_BRANCH=master
@@ -141,7 +143,7 @@ not).
 # Using rbenv (optional)
 
 If $RBENV_VERSION is defined when bootstrap.sh runs
-(e.g. $RBENV_VERSION=1.9.3-p327), rbenv will be installed (if
+(e.g. $RBENV_VERSION=1.9.3-p362), rbenv will be installed (if
 necessary) in your home directory, and the specified ruby version will
 be built and installed therein.
 

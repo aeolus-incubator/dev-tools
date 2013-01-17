@@ -47,7 +47,7 @@ fi
 # If you want to use system ruby for the aeolus projects, do not
 # define this env var.  Otherwise, use (and install if necessary)
 # specified ruby version locally in ~/.rbenv for $DEV_USERNAME
-# export RBENV_VERSION=1.9.3-p327
+# export RBENV_VERSION=1.9.3-p362
 
 # Set default Deltacloud, ImageFactory, and Image Warehouse values
 # (for RH network) if they're not already in the environment
@@ -86,6 +86,7 @@ fi
 # export SETUP_LOCAL_DELTACLOUD_RELEASE=release-1.0.5
 # export SETUP_LOCAL_DELTACLOUD_PORT=3002
 #
+# _BRANCH variables below may be either branches, tags or commit hashes.
 # Note that master is the default branch cloned from each of the three
 # projects if a _BRANCH is not specified.
 #
@@ -356,7 +357,7 @@ if [ "x$RBENV_VERSION" != "x" ]; then
 fi
 
 gem_installs="json facter puppet"
-if [ $os = "el6" ]; then
+if [ "$os" = "el6" -o "$os" = "debian" ]; then
   gem_installs="$gem_installs bundler"
 fi
 
@@ -376,6 +377,10 @@ for the_gem in `echo $gem_installs`; do
       # http://docs.rubygems.org/read/chapter/3
       if [ "$HAVESUDO" = "1" ]; then
         cmd="sudo $cmd"
+      else
+        echo 'Installing local gems without using rbenv is not currently supported.'
+        echo 'If you want to install gems system-wide using system ruby instead of rbenv, you must be a sudo-enabled user'
+        exit 1
       fi
     fi
     if  [[ ${gem_versions[$the_gem]} ]]; then

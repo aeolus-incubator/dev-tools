@@ -19,8 +19,9 @@ define git::repo (
   exec { "branch-repo-${name}-${branch}":
     cwd             => "$dst/$name",
     path            => "/usr/bin:/bin:/usr/local/bin",
-    command         => "git checkout --track -b ${branch} origin/${branch}",
-    unless          => "grep -q ${branch} ${dst}/${name}/.git/HEAD || ( ! ( git branch -r | grep origin/${branch} ) )",
+    command         => "git checkout ${branch}",
+    # Below would not work for checking out tags or commit hashes
+    #unless          => "grep -q ${branch} ${dst}/${name}/.git/HEAD || ( ! ( git branch -r | grep origin/${branch} ) )",
     require         => Exec["clone-repo-${name}"],
   }
 

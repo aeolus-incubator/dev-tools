@@ -3,7 +3,7 @@ class conductor::setup::dev {
 
   exec { "patch Gemfile to point to local aeolus-image-rubygem":
     cwd => "${aeolus_workdir}/conductor/src",
-    onlyif => "test -f ${aeolus_workdir}/aeolus-image-rubygem/aeolus-image-0.6.0.gem",
+    onlyif => "test -f ${aeolus_workdir}/aeolus-image-rubygem/aeolus-image-*.gem",
     command => "sed -i \"s#:git.*\\\$#:path => '${aeolus_workdir}/aeolus-image-rubygem'#\" Gemfile"
   }
 

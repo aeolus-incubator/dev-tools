@@ -24,17 +24,10 @@ class conductor::setup::dev {
                     "patch Gemfile to point to local tim source"]
   }
 
-  exec { "configure tim callback url":
-    cwd => "${aeolus_workdir}/conductor/src/config/initializers",
-    onlyif => "test -f ${aeolus_workdir}/conductor/src/config/initializers/tim.rb",
-    command => "sed -i 's#callback_url = \"http://localhost:3000/tim#callback_url = \"http://admin:password@localhost:${conductor_port}/tim#' tim.rb"
-  }
-
   exec { "create database":
     cwd => "${aeolus_workdir}/conductor/src",
     command => "bundle exec rake db:create:all",
-    require => Exec["bundle install",
-                     "configure tim callback url"]
+    require => Exec["bundle install"]
   }
 
   exec { "migrate database":

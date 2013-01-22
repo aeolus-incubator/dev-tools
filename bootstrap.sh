@@ -25,6 +25,13 @@ if [ "x$FACTER_CONDUCTOR_PORT" = "x" ]; then
   export FACTER_CONDUCTOR_PORT=3000
 fi
 
+# Used specifically for the conductor/tim's callback_url that gets
+# provided to imagefactory (in
+# /conductor/src/config/initializers/tim.rb)
+if [ "x$FACTER_CONDUCTOR_HOSTNAME" = "x" ]; then
+  export FACTER_CONDUCTOR_HOSTNAME=`hostname`
+fi
+
 # RDBMS to use for the install (postgresql|sqlite)
 if [ "x$FACTER_RDBMS" = "x" ]; then
   export FACTER_RDBMS=postgresql

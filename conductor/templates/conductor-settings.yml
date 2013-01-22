@@ -8,11 +8,6 @@
   :enable_local: true
   # allows ldap-managed groups
   :enable_ldap: true
-:iwhd:
-  :url: http://localhost:9090
-  :oauth:
-    :consumer_key: <%= iwhd_oauth_user %>
-    :consumer_secret: <%= iwhd_oauth_password %>
 
 :imagefactory:
   :url: https://localhost:8075/imagefactory

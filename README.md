@@ -1,10 +1,10 @@
 # Aeolus dev-tools
 
 Use bootstrap.sh to setup a development environment for the Aeolus
-projects conductor, aeolus-image-rubygem, and aeolus-cli, and to start
-up an instance of conductor.  While useful to developers, it also
-provides the capability to quickly test various branches, tags, pull
-requests and ruby versions.
+projects conductor, tim, and aeolus-cli, and to start up an instance
+of conductor.  While useful to developers, it also provides the
+capability to quickly test various branches, tags, pull requests and
+ruby versions.
 
 # Quick Start
 
@@ -27,7 +27,7 @@ bootstrap.sh assuming all needed dependencies are installed by defining
 Either of the above commands will work on: RHEL 6, Fedora 16/17, and
 Ubuntu 12.04/12.10.  Note, for the local instance of Conductor to be
 fully functional, some env variables (described below) need to point
-to existing imagefactory/iwhd/deltacloud instance URLs and an
+to existing imagefactory/deltacloud instance URLs and an
 oauth.json credential.  Otherwise, Conductor will still start up but
 won't be very usable.
 
@@ -40,8 +40,8 @@ bootstrap.sh, e.g.:
     export FACTER_CONDUCTOR_PORT=3001
 
 There are other useful environment variables described further in this
-document, for example to point to existing deltacloud, image factory
-and/or image warehouse instances and/or to apply a pull request.
+document, for example to point to existing deltacloud and/or image
+factory instances and/or to apply a pull request.
 
 # bootstrap.sh: Overview and Defaults
 
@@ -55,8 +55,8 @@ defaults:
 
     WORKDIR=~/aeolus-workdir
 
-  Parent dir where the projects conductor, aeolus-cli and
-  aeolus-image-rubygem get checked out to (by default same as above):
+  Parent dir where the projects conductor, aeolus-cli and tim get
+  checked out to (by default same as above):
 
     FACTER_AEOLUS_WORKDIR=$WORKDIR
 
@@ -70,14 +70,12 @@ defaults:
 
     RBENV_VERSION=
 
-  URL's to API's that conductor relies on, namely deltacloud, image
-  factory, and image warehouse.  A valid oauth.json also must be
-  specified, which contains credentials specific to your Image Factory
-  and Image Warehouse instance.
+  URL's to API's that conductor relies on, namely deltacloud and image
+  factory.  A valid oauth.json also may be specified, which contains
+  credentials specific to your Image Factory instance.
 
     FACTER_DELTACLOUD_URL=http://localhost:3002/api
     FACTER_IMAGEFACTORY_URL=https://localhost:8075/imagefactory
-    FACTER_IWHD_URL=http://localhost:9090
     FACTER_OAUTH_JSON_FILE=/tmp/oauth.json
 
   Git tags, branches or commit hashes that are checked out: (even
@@ -111,7 +109,7 @@ following directory structure:
     $WORKDIR/
       conductor/            # git checkout of https://github.com/aeolusproject/conductor
       aeolus-cli/           # git checkout of https://github.com/aeolusproject/aeolus-cli
-      aeolus-image-rubygem/ # git checkout of https://github.com/aeolusproject/aeolus-image-rubygem
+      tim/                  # git checkout of https://github.com/aeolusproject/aeolus-image-rubygem
       deltacloud/           # only created if SETUP_LOCAL_DELTACLOUD_RELEASE is defined,
                             # a git checkout of a release from
                             # https://git-wip-us.apache.org/repos/asf?p=deltacloud.git
@@ -190,7 +188,7 @@ The above also works well in an emacs shell.  ;-)
 
 bootstrap.sh makes heavy use of the puppet definitions within this
 repository to create and configure
-conductor/aeolus-cli/aeolus-image-rubygem.
+conductor, aeolus-cli, and tim.
 
 # See Also
 * http://blog.aeolusproject.org/upstream-conductor-development

@@ -59,9 +59,9 @@ class conductor::setup::dev {
     command => "bundle exec rake dc:create_admin_user",
     require => Exec["setup database"]
   }
-  exec { "compass compile":
-    cwd => "${aeolus_workdir}/conductor/src",
-    command => "bundle exec compass compile",
-    require => Exec["bundle install"]
-  }
+#  exec { "compass compile":
+#    cwd => "${aeolus_workdir}/conductor/src",
+#    command => "bundle exec compass compile",
+#    require => Exec["bundle install"]
+#  }
 }

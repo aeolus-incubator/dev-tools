@@ -20,6 +20,12 @@ class conductor::config::dev {
     }
   }
 
+  exec { "configure tim callback url":
+    cwd => "${aeolus_workdir}/conductor/src/config/initializers",
+    onlyif => "test -f ${aeolus_workdir}/conductor/src/config/initializers/tim.rb",
+    command => "sed -i 's#callback_url = \"http://localhost:3000/tim#callback_url = \"http://admin:password@${conductor_hostname}:${conductor_port}/tim#' tim.rb"
+  }
+
   exec { "use established ouath.json if it exists":
     cwd => "${aeolus_workdir}/conductor/src/config",
     onlyif => "test -f ${oauth_json_file}",
@@ -44,13 +50,6 @@ class conductor::config::dev {
      exec { "update deltacloud_url":
        cwd => "${aeolus_workdir}/conductor/src/config",
        command => "sed -i s#http://localhost:3002/api#$deltacloud_url# settings.yml",
-       require => File["${aeolus_workdir}/conductor/src/config/settings.yml"]
-     }
-   }
-   if $iwhd_url != undef {
-     exec { "update iwhd_url":
-       cwd => "${aeolus_workdir}/conductor/src/config",
-       command => "sed -i s#http://localhost:9090#$iwhd_url# settings.yml",
        require => File["${aeolus_workdir}/conductor/src/config/settings.yml"]
      }
    }

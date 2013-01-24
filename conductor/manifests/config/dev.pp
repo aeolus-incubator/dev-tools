@@ -53,13 +53,6 @@ class conductor::config::dev {
        require => File["${aeolus_workdir}/conductor/src/config/settings.yml"]
      }
    }
-   if $iwhd_url != undef {
-     exec { "update iwhd_url":
-       cwd => "${aeolus_workdir}/conductor/src/config",
-       command => "sed -i s#http://localhost:9090#$iwhd_url# settings.yml",
-       require => File["${aeolus_workdir}/conductor/src/config/settings.yml"]
-     }
-   }
    if $imagefactory_url != undef {
      exec { "update imagefactory_url":
        cwd => "${aeolus_workdir}/conductor/src/config",

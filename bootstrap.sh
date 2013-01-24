@@ -5,16 +5,16 @@ if [ "x$HAVESUDO" = "x" ]; then
   HAVESUDO=1
 fi
 
-# Setup a development environment for conductor, aeolus-image-rubygem
+# Setup a development environment for conductor, tim
 # and aeolus-cli.  Configure conductor to use an external
-# imagefactory/iwhd/deltacloud by setting env variables and
+# imagefactory/deltacloud by setting env variables and
 # oauth.json, below.  Startup conductor on port 3000
 
 if [ "x$WORKDIR" = "x" ]; then
   export WORKDIR=~/aeolus-workdir
 fi
 
-# Where the aeolus projects (conductor, aeolus-cli and aeolus-image-rubygem)
+# Where the aeolus projects (conductor, aeolus-cli and tim)
 # get checked out to
 if [ "x$FACTER_AEOLUS_WORKDIR" = "x" ]; then
   export FACTER_AEOLUS_WORKDIR=$WORKDIR
@@ -56,16 +56,13 @@ fi
 # specified ruby version locally in ~/.rbenv for $DEV_USERNAME
 # export RBENV_VERSION=1.9.3-p362
 
-# Set default Deltacloud, ImageFactory, and Image Warehouse values
+# Set default Deltacloud, ImageFactory values
 # (for RH network) if they're not already in the environment
-if [ "x$FACTER_IWHD_URL" = "x" ]; then
-  export FACTER_IWHD_URL=http://localhost:9090
-fi
 if [ "x$FACTER_DELTACLOUD_URL" = "x" ]; then
   export FACTER_DELTACLOUD_URL=http://localhost:3002/api
 fi
 if [ "x$FACTER_IMAGEFACTORY_URL" = "x" ]; then
-  export FACTER_IMAGEFACTORY_URL=https://localhost:8075/imagefactory
+  export FACTER_IMAGEFACTORY_URL=http://localhost:8075/imagefactory
 fi
 
 # Create some default OAuth values
@@ -82,7 +79,7 @@ if [ "x$FACTER_OAUTH_JSON_FILE" = "x" ]; then
     # up), you can always edit conductor/src/config/settings.yml and
     # conductor/src/config/oauth.json to reflect updated image factory
     # and image warehouse credentials.
-    echo -n '{"iwhd":{"consumer_secret":"/Bv2mvBusak2HoCJXUwXIogMhPrkjIjR","consumer_key":"G9xILgFMXZ4lEsQgO1CG6ujErGKwA6Cp"},"factory":{"consumer_secret":"ieqL8ojxPQBvKwCh3m36Fc6on4B+SHB/","consumer_key":"LfiaAIMFP0ASr3VGrbCDjQn1bQL81+SK"}}' > $FACTER_OAUTH_JSON_FILE
+    echo -n '{"factory":{"consumer_secret":"ieqL8ojxPQBvKwCh3m36Fc6on4B+SHB/","consumer_key":"LfiaAIMFP0ASr3VGrbCDjQn1bQL81+SK"}}' > $FACTER_OAUTH_JSON_FILE
   fi
 fi
 
@@ -98,14 +95,14 @@ fi
 # projects if a _BRANCH is not specified.
 #
 # export FACTER_AEOLUS_CLI_BRANCH=0.5.x
-# export FACTER_AEOLUS_IMAGE_RUBYGEM_BRANCH=0.3-maint
 # export FACTER_CONDUCTOR_BRANCH=0.10.x
+# export FACTER_TIM_PULL_REQUEST=v0.2.0
 #
 # Pull requests must be integers
 #
 # export FACTER_AEOLUS_CLI_PULL_REQUEST=6
-# export FACTER_AEOLUS_IMAGE_RUBYGEM_PULL_REQUEST=7
 # export FACTER_CONDUCTOR_PULL_REQUEST=47
+# export FACTER_TIM_PULL_REQUEST=2
 #
 
 if `netstat -tln | grep -q -P "\:$FACTER_CONDUCTOR_PORT\\s"`; then
@@ -113,10 +110,10 @@ if `netstat -tln | grep -q -P "\:$FACTER_CONDUCTOR_PORT\\s"`; then
   exit 1
 fi
 
-if [ -e $FACTER_AEOLUS_WORKDIR/conductor ] || [ -e $FACTER_AEOLUS_WORKDIR/aeolus-image-rubygem ] || \
+if [ -e $FACTER_AEOLUS_WORKDIR/conductor ] || [ -e $FACTER_AEOLUS_WORKDIR/tim ] || \
   [ -e $FACTER_AEOLUS_WORKDIR/aeolus-cli ]; then
   echo -n "Already existing directories, one of $FACTER_AEOLUS_WORKDIR/conductor, "
-  echo "$FACTER_AEOLUS_WORKDIR/aeolus-image-rubygem or $FACTER_AEOLUS_WORKDIR/aeolus-cli.  Aborting"
+  echo "$FACTER_AEOLUS_WORKDIR/tim or $FACTER_AEOLUS_WORKDIR/aeolus-cli.  Aborting"
   exit 1
 fi
 

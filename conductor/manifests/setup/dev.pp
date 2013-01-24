@@ -1,13 +1,6 @@
 class conductor::setup::dev {
   require conductor::config::dev
 
-  # this next block is going away soon
-  exec { "patch Gemfile to point to local aeolus-image-rubygem":
-    cwd => "${aeolus_workdir}/conductor/src",
-    onlyif => "test -f ${aeolus_workdir}/aeolus-image-rubygem/aeolus-image-*.gem",
-    command => "sed -i \"s#gem 'aeolus-image', :git.*\\\$#gem 'aeolus-image', :path => '${aeolus_workdir}/aeolus-image-rubygem'#\" Gemfile"
-  }
-
   exec { "patch Gemfile to point to local tim source":
     cwd => "${aeolus_workdir}/conductor/src",
     onlyif => "test -d ${aeolus_workdir}/tim",
@@ -20,8 +13,7 @@ class conductor::setup::dev {
     logoutput => on_failure,
     # 15 minute timeout because this can take awhile sometimes
     timeout => 900,
-    require => Exec["patch Gemfile to point to local aeolus-image-rubygem",
-                    "patch Gemfile to point to local tim source"]
+    require => Exec["patch Gemfile to point to local tim source"]
   }
 
   exec { "create database":

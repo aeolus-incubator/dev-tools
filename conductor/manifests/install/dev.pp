@@ -15,16 +15,4 @@ class conductor::install::dev {
     branch => $branch,
     pull_request => $conductor_pull_request
   }
-
-  # converge-ui
-  exec { "init submodule":
-    cwd => "${aeolus_workdir}/conductor",
-    command => "/usr/bin/git submodule init",
-    require => Git::Repo[conductor]
-  }
-  exec { "update submodule":
-    cwd => "${aeolus_workdir}/conductor",
-    command => "/usr/bin/git submodule update",
-    require => Exec["init submodule"]
-  }
 }

@@ -39,15 +39,3 @@ Facter.add("imagefactory_oauth_password") do
     oauthconfig['factory']['consumer_secret']
   end
 end
-
-Facter.add("iwhd_oauth_user") do
-  setcode do
-    oauthconfig['iwhd']['consumer_key']
-  end
-end
-
-Facter.add("iwhd_oauth_password") do
-  setcode do
-    oauthconfig['iwhd']['consumer_secret']
-  end
-end

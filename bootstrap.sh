@@ -175,16 +175,12 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "el6" ]; then
 
   # Add Deltacloud build dependencies if needed
   if [ "x$SETUP_LOCAL_DELTACLOUD_RELEASE" != "x" ]; then
-      depends="$depends bison flex libxslt openssl-devel"
-      depends="$depends readline-devel"
+    depends="$depends bison flex libxslt openssl-devel"
+    depends="$depends readline-devel"
 
-    # If the master branch of Deltacloud is requested, we need
-    # to add sqlite-devel as a dependency.  This is because
     # Deltacloud added new deps after 1.0.5:
     #   https://mail-archives.apache.org/mod_mbox/deltacloud-dev/201212.mbox/browser
-    if [ "x$SETUP_LOCAL_DELTACLOUD_RELEASE" = "xmaster" ]; then
-        depends="$depends sqlite-devel"
-    fi
+    depends="$depends sqlite-devel"
   fi
 
   # If we have sudo, we're able to install missing dependencies

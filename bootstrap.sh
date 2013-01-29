@@ -246,13 +246,9 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "el6" ]; then
       fi
 
       # create the database user and grant CREATEDB
-      sudo su - postgres -c "psql -c \"CREATE USER $FACTER_RDBMS_USERNAME WITH PASSWORD '$FACTER_RDBMS_PASSWORD';\""
+      sudo su - postgres -c "psql -c \"CREATE ROLE $FACTER_RDBMS_USERNAME WITH LOGIN CREATEDB SUPERUSER PASSWORD '$FACTER_RDBMS_PASSWORD';\""
       if [ $? -ne 0 ]; then
-        echo "INFO: postgresql create user $FACTER_RDBMS_USERNAME failed"
-      fi
-      sudo su - postgres -c "psql -c \"alter user $FACTER_RDBMS_USERNAME CREATEDB;\""
-      if [ $? -ne 0 ]; then
-        echo "INFO: postgresql grant user $FACTER_RDBMS_USERNAME CREATEDB failed"
+        echo "INFO: postgresql create role $FACTER_RDBMS_USERNAME failed"
       fi
     fi
   else
@@ -288,13 +284,9 @@ if [ "$os" = "debian" ]; then
       sudo service postgresql start
 
       # create the database user and grant CREATEDB
-      sudo su - postgres -c "psql -c \"CREATE USER $FACTER_RDBMS_USERNAME WITH PASSWORD '$FACTER_RDBMS_PASSWORD';\""
+      sudo su - postgres -c "psql -c \"CREATE ROLE $FACTER_RDBMS_USERNAME WITH LOGIN CREATEDB SUPERUSER PASSWORD '$FACTER_RDBMS_PASSWORD';\""
       if [ $? -ne 0 ]; then
-        echo "INFO: postgresql create user $FACTER_RDBMS_USERNAME failed"
-      fi
-      sudo su - postgres -c "psql -c \"alter user $FACTER_RDBMS_USERNAME CREATEDB;\""
-      if [ $? -ne 0 ]; then
-        echo "INFO: postgresql grant user $FACTER_RDBMS_USERNAME CREATEDB failed"
+        echo "INFO: postgresql create role $FACTER_RDBMS_USERNAME failed"
       fi
     fi
   fi

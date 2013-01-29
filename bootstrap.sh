@@ -145,7 +145,7 @@ fi
 
 # install dependencies for fedora/rhel/centos
 if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "el6" ]; then
-  depends="git"
+  depends="git patch"
 
   # general ruby deps needed to roll your own ruby or build extensions
   depends="$depends gcc make zlib-devel"

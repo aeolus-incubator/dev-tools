@@ -1,5 +1,14 @@
 #!/bin/bash
 
+function create_pg_user {
+  # create the database role
+  sudo su - postgres -c "psql -c \"CREATE ROLE $FACTER_RDBMS_USERNAME WITH LOGIN CREATEDB SUPERUSER PASSWORD '$FACTER_RDBMS_PASSWORD';\""
+  # note that the SUPERUSER option can be removed once we user Rails that merge this fix: https://github.com/rails/rails/pull/8548
+  if [ $? -ne 0 ]; then
+    echo "INFO: postgresql create role $FACTER_RDBMS_USERNAME failed"
+  fi
+}
+
 # Set this to 0 if you don't have (or don't want to use) sudo permissions
 if [ "x$HAVESUDO" = "x" ]; then
   HAVESUDO=1
@@ -233,9 +242,11 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "el6" ]; then
 
       # if there was no pre-existing pg_hba.conf, set all authentication methods to 'trust' and 'md5'
       if [ $PG_HBA_CONF_EXISTS -eq 0 ]; then
-        sudo bash -c "echo 'local all all trust' > /var/lib/pgsql/data/pg_hba.conf"
-        sudo bash -c "echo 'host all all 127.0.0.1/32 md5' >> /var/lib/pgsql/data/pg_hba.conf"
-        sudo bash -c "echo 'host all all ::1/128 md5' >> /var/lib/pgsql/data/pg_hba.conf"
+        sudo cat >/var/lib/pgsql/data/pg_hba.conf <<EOD
+local all all trust
+host all all 127.0.0.1/32 md5
+host all all ::1/128 md5
+EOD
       fi
 
       # start the postgresql service
@@ -245,15 +256,8 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "el6" ]; then
         sudo systemctl start postgresql.service
       fi
 
-      # create the database user and grant CREATEDB
-      sudo su - postgres -c "psql -c \"CREATE USER $FACTER_RDBMS_USERNAME WITH PASSWORD '$FACTER_RDBMS_PASSWORD';\""
-      if [ $? -ne 0 ]; then
-        echo "INFO: postgresql create user $FACTER_RDBMS_USERNAME failed"
-      fi
-      sudo su - postgres -c "psql -c \"alter user $FACTER_RDBMS_USERNAME CREATEDB;\""
-      if [ $? -ne 0 ]; then
-        echo "INFO: postgresql grant user $FACTER_RDBMS_USERNAME CREATEDB failed"
-      fi
+      # create the database role with CREATEDB permission
+      create_pg_user
     fi
   else
     for dep in `echo $depends`; do
@@ -287,15 +291,8 @@ if [ "$os" = "debian" ]; then
       # attempt to start it in case it was previously installed
       sudo service postgresql start
 
-      # create the database user and grant CREATEDB
-      sudo su - postgres -c "psql -c \"CREATE USER $FACTER_RDBMS_USERNAME WITH PASSWORD '$FACTER_RDBMS_PASSWORD';\""
-      if [ $? -ne 0 ]; then
-        echo "INFO: postgresql create user $FACTER_RDBMS_USERNAME failed"
-      fi
-      sudo su - postgres -c "psql -c \"alter user $FACTER_RDBMS_USERNAME CREATEDB;\""
-      if [ $? -ne 0 ]; then
-        echo "INFO: postgresql grant user $FACTER_RDBMS_USERNAME CREATEDB failed"
-      fi
+      # create the database role with CREATEDB permission
+      create_pg_user
     fi
   fi
 fi

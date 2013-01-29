@@ -11,6 +11,9 @@
 
 :imagefactory:
   :url: https://localhost:8075/imagefactory
+  :callback_urls:
+    :target_image: http://admin:password@<%= conductor_hostname %>:<%= conductor_port %>/tim/target_images
+    :provider_image: http://admin:password@<%= conductor_hostname %>:<%= conductor_port %>/tim/provider_images
   :oauth:
     :consumer_key: <%= imagefactory_oauth_user %>
     :consumer_secret: <%= imagefactory_oauth_password %>

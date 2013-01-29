@@ -427,7 +427,8 @@ fi
 # and FACTER_AEOLUS_WORKDIR are usually the same
 mkdir -p $WORKDIR
 if [ ! -d $WORKDIR ]; then
-  "ABORTING.  Could not create directory $WORKDIR"
+  echo "ABORTING.  Could not create directory $WORKDIR"
+  exit 1
 fi
 
 cd $WORKDIR
@@ -449,7 +450,11 @@ echo "you may need to add manually the 'puppet' group to the system in case of e
 cd $WORKDIR/dev-tools
 puppet apply -d --modulepath=. test.pp --no-report
 
-# Arbitrary post-script commmand to execute
+if [ $? -eq 0 ]; then
+  echo "** instalation successfully finished **"
+fi
+
+# Arbitrary post-script command to execute
 # (useful for say, seeding provider accounts)
 if [ ! "x$POST_SCRIPTLET" = "x" ]; then
 

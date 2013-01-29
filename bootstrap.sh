@@ -58,7 +58,7 @@ if [ "x$FACTER_DELTACLOUD_URL" = "x" ]; then
   export FACTER_DELTACLOUD_URL=http://localhost:3002/api
 fi
 if [ "x$FACTER_IMAGEFACTORY_URL" = "x" ]; then
-  export FACTER_IMAGEFACTORY_URL=https://localhost:8075/imagefactory
+  export FACTER_IMAGEFACTORY_URL=http://localhost:8075/imagefactory
 fi
 
 # Create some default OAuth values
@@ -83,16 +83,18 @@ fi
 #
 # If the following env var is defined, checkout and start up
 # deltacloud locally rather than use an existing installation.
-# export SETUP_LOCAL_DELTACLOUD_RELEASE=release-1.0.5
-# export SETUP_LOCAL_DELTACLOUD_PORT=3002
+#
+export SETUP_LOCAL_DELTACLOUD_RELEASE=release-1.0.5
+export SETUP_LOCAL_DELTACLOUD_PORT=3002
 #
 # _BRANCH variables below may be either branches, tags or commit hashes.
 # Note that master is the default branch cloned from each of the three
 # projects if a _BRANCH is not specified.
 #
-# export FACTER_AEOLUS_CLI_BRANCH=0.5.x
-# export FACTER_AEOLUS_IMAGE_RUBYGEM_BRANCH=0.3-maint
-# export FACTER_CONDUCTOR_BRANCH=0.10.x
+export FACTER_AEOLUS_CLI_BRANCH=2012-Dec-1
+export FACTER_AEOLUS_IMAGE_RUBYGEM_BRANCH=2012-Dec-1
+export FACTER_CONDUCTOR_BRANCH=2012-Dec-1
+export DEV_TOOLS_BRANCH=2012-dec-1
 #
 # Pull requests must be integers
 #

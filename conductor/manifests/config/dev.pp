@@ -20,12 +20,6 @@ class conductor::config::dev {
     }
   }
 
-  exec { "configure tim callback url":
-    cwd => "${aeolus_workdir}/conductor/src/config/initializers",
-    onlyif => "test -f ${aeolus_workdir}/conductor/src/config/initializers/tim.rb",
-    command => "sed -i 's#callback_url = \"http://localhost:3000/tim#callback_url = \"http://admin:password@${conductor_hostname}:${conductor_port}/tim#' tim.rb"
-  }
-
   exec { "use established ouath.json if it exists":
     cwd => "${aeolus_workdir}/conductor/src/config",
     onlyif => "test -f ${oauth_json_file}",

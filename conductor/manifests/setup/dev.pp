@@ -30,7 +30,7 @@ class conductor::setup::dev {
 
   exec { "setup database":
     cwd => "${aeolus_workdir}/conductor/src",
-    command => "bundle exec rake db:setup",
+    command => "bundle exec rake db:seed",
     require => Exec["migrate database"]
   }
 

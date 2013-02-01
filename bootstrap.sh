@@ -187,7 +187,7 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "el6" ]; then
   if [ "$HAVESUDO" = "1" ]; then
     # Check which dependencies need installing
     install_list=""
-    for dep in `echo $depends`; do
+    for dep in $depends; do
       if ! `rpm -q --quiet --nodigest $dep`; then
         install_list="$install_list $dep"
       fi
@@ -200,7 +200,7 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "el6" ]; then
 
     # Verify the dependencies did install
     fail_list=""
-    for dep in `echo $depends`; do
+    for dep in $depends; do
       if ! `rpm -q --quiet --nodigest $dep`; then
         fail_list="$fail_list $dep"
       fi
@@ -252,7 +252,7 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "el6" ]; then
       fi
     fi
   else
-    for dep in `echo $depends`; do
+    for dep in $depends; do
       # sanity check that it just installed
       if ! `rpm -q --quiet --nodigest $dep`; then
         echo "ABORTING:  $dep is not installed"
@@ -359,7 +359,7 @@ fi
 declare -A gem_versions
 gem_versions["facter"]=1.6.13
 
-for the_gem in `echo $gem_installs`; do
+for the_gem in $gem_installs; do
   if [ `gem list -i $the_gem` = "false" ]; then
     cmd="gem install $the_gem"
     if [ "x$RBENV_VERSION" = "x" ]; then

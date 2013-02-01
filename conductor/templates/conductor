@@ -1,0 +1,95 @@
+#!/bin/bash
+#
+
+# A simple init-style standalone start/stop script for conductor, it
+# is not as robust as OS-specific start/stop scripts
+# (sysvinit/upstart/systemd), but useful for testing.  Uses foreman to
+# start the 3 conductor processes
+
+FOREMAN_PROG="foreman"
+FOREMAN_LOG=<%= aeolus_workdir %>/conductor/src/log/foreman.log
+FOREMAN_DIR="${FOREMAN_DIR:-<%= aeolus_workdir %>/conductor/src}"
+FOREMAN_PID="${FOREMAN_PID:-<%= aeolus_workdir %>/conductor/src/tmp/foreman.pid}"
+PATH=<%= path %>
+
+# Borrowed from Fedora /etc/init.d/functions
+# Check if any of $pid (could be plural) are running
+checkpid() {
+	local i
+
+	for i in $* ; do
+		[ -d "/proc/$i" ] && return 0
+	done
+	return 1
+}
+
+
+start() {
+  echo -n "Starting ${FOREMAN_PROG}: "
+
+  if [ -f "$FOREMAN_PID" ] && checkpid `cat $FOREMAN_PID` ; then
+    echo
+    echo "${FOREMAN_PROG} is already running"
+    exit 1
+  fi
+  cd $FOREMAN_DIR
+  $FOREMAN_PROG start >> $FOREMAN_LOG 2>&1&
+  pid=$!
+  if [ -z $pid ]; then
+    echo "Failed"
+    exit 1
+  else
+    # TODO wait around to make sure all 3 child processes start up
+    echo $pid > $FOREMAN_PID
+    echo "OK"
+    exit 0
+  fi
+}
+
+stop() {
+  echo -n "Shutting down $FOREMAN_PROG: "
+  if [ -f "$FOREMAN_PID" ] && checkpid `cat $FOREMAN_PID` ; then
+    pid=`cat $FOREMAN_PID`
+    kill -TERM $pid >/dev/null 2>&1
+    for i in 0 1 2 3 4 5 6 7 8 9; do
+      sleep 1
+      checkpid $pid
+      if [ $? -eq 1 ]; then
+        echo "OK"
+        rm -f $FOREMAN_PID
+        exit 0
+      fi
+    done
+    # try again with SIGKILL
+    kill -KILL $pid >/dev/null 2>&1
+    for i in 0 1 2 3 4 5 6 7 8 9; do
+      sleep 1
+      checkpid $pid
+      if [ $? -eq 1 ]; then
+        echo "OK"
+        rm -f $FOREMAN_PID
+        exit 0
+      fi
+    done
+    echo "FAILED TO SHUTDOWN $FOREMAN_PROG"
+    exit 1
+  fi
+  echo "$FOREMAN_PID non-existant or process not running"
+}
+
+restart() {
+  $0 stop
+  $0 start
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        restart
+        ;;
+esac

@@ -348,7 +348,7 @@ if [ "x$RBENV_VERSION" != "x" ]; then
   export FACTER_RBENV_HOME=`echo $thehomedir`/.rbenv
 fi
 
-gem_installs="json facter puppet"
+gem_installs="json facter puppet foreman"
 if [ "$os" = "el6" -o "$os" = "debian" ]; then
   gem_installs="$gem_installs bundler"
 fi
@@ -443,7 +443,35 @@ cd $WORKDIR/dev-tools
 puppet apply -d --modulepath=. test.pp --no-report
 
 if [ $? -eq 0 ]; then
-  echo "** instalation successfully finished **"
+  echo "Success!  Dev-tools has set up your Conductor environment along with"
+  echo "the related Aeolus projects, Tim and Aeolus-cli."
+  echo ""
+  echo "An instance of rails for conductor has been started on"
+  echo "port $FACTER_CONDUCTOR_PORT.  Note that two other conductor processes have"
+  echo "also been started (dbomatic and delayed jobs).  To stop all three"
+  echo "conductor processes, use \"$FACTER_AEOLUS_WORKDIR/bin/conductor stop\"."
+  echo ""
+  echo "The conductor start/stop/restart script,"
+  echo "$FACTER_AEOLUS_WORKDIR/bin/conductor,"
+  echo "which starts or stops the three processes has been created for your"
+  echo "convenience.  Use of this script is optional; you may instead wish to"
+  echo "cd into $FACTER_AEOLUS_WORKDIR/conductor/src and use \"foreman start\""
+  echo "to start the processes in a shell or just plain old \"bundle exec\" the"
+  echo "commands in $FACTER_AEOLUS_WORKDIR/conductor/src/Procfile (assuming"
+  echo "of course you have already stopped the conductor processes that this"
+  echo "dev-tools script started up)."
+
+  if [ "x$RBENV_VERSION" != "x" ]; then
+    echo ""
+    echo "NOTE: RBENV_VERSION was specified when running dev-tools.  If you"
+    echo "plan on hacking away, make sure that you add rbenv to your path, e.g.:"
+    echo ""
+    echo "  export RBENV_ROOT=\"\${HOME}/.rbenv\""
+    echo "  if [ -d \"\${RBENV_ROOT}\" ]; then"
+    echo "    export PATH=\"\${RBENV_ROOT}/bin:\${PATH}\""
+    echo "    eval \"\$(rbenv init -)\""
+    echo "  fi"
+  fi
 fi
 
 # Arbitrary post-script command to execute

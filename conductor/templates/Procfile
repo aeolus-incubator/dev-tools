@@ -1,0 +1,5 @@
+# conductor_port could be specified in a foreman-specific .env file,
+# but that feels like one extra config file too many
+conductor_web:      bundle exec "rails s -p <%= conductor_port %>"
+conductor_dbomatic: bundle exec "ruby dbomatic/dbomatic --log log --pid-file tmp -n"
+conductor_jobs:     bundle exec "rake jobs:work"

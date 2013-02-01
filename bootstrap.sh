@@ -1,5 +1,14 @@
 #!/bin/bash
 
+function create_pg_user {
+  # create the database role
+  sudo su - postgres -c "psql -c \"CREATE ROLE $FACTER_RDBMS_USERNAME WITH LOGIN CREATEDB SUPERUSER PASSWORD '$FACTER_RDBMS_PASSWORD';\""
+  # note that the SUPERUSER option can be removed once we use Rails that merge this fix: https://github.com/rails/rails/pull/8548
+  if [ $? -ne 0 ]; then
+    echo "INFO: postgresql create role $FACTER_RDBMS_USERNAME failed"
+  fi
+}
+
 # Set this to 0 if you don't have (or don't want to use) sudo permissions
 if [ "x$HAVESUDO" = "x" ]; then
   HAVESUDO=1
@@ -110,8 +119,8 @@ if `netstat -tln | grep -q -P "\:$FACTER_CONDUCTOR_PORT\\s"`; then
   exit 1
 fi
 
-if [ -e $FACTER_AEOLUS_WORKDIR/conductor ] || [ -e $FACTER_AEOLUS_WORKDIR/tim ] || \
-  [ -e $FACTER_AEOLUS_WORKDIR/aeolus-cli ]; then
+if [ -e $FACTER_AEOLUS_WORKDIR/conductor -o -e $FACTER_AEOLUS_WORKDIR/tim -o \
+  -e $FACTER_AEOLUS_WORKDIR/aeolus-cli ]; then
   echo -n "Already existing directories, one of $FACTER_AEOLUS_WORKDIR/conductor, "
   echo "$FACTER_AEOLUS_WORKDIR/tim or $FACTER_AEOLUS_WORKDIR/aeolus-cli.  Aborting"
   exit 1
@@ -194,7 +203,7 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "f18" -o "$os" = "el6" ]; then
   if [ "$HAVESUDO" = "1" ]; then
     # Check which dependencies need installing
     install_list=""
-    for dep in `echo $depends`; do
+    for dep in $depends; do
       if ! `rpm -q --quiet --nodigest $dep`; then
         install_list="$install_list $dep"
       fi
@@ -207,7 +216,7 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "f18" -o "$os" = "el6" ]; then
 
     # Verify the dependencies did install
     fail_list=""
-    for dep in `echo $depends`; do
+    for dep in $depends; do
       if ! `rpm -q --quiet --nodigest $dep`; then
         fail_list="$fail_list $dep"
       fi
@@ -240,9 +249,12 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "f18" -o "$os" = "el6" ]; then
 
       # if there was no pre-existing pg_hba.conf, set all authentication methods to 'trust' and 'md5'
       if [ $PG_HBA_CONF_EXISTS -eq 0 ]; then
-        sudo bash -c "echo 'local all all trust' > /var/lib/pgsql/data/pg_hba.conf"
-        sudo bash -c "echo 'host all all 127.0.0.1/32 md5' >> /var/lib/pgsql/data/pg_hba.conf"
-        sudo bash -c "echo 'host all all ::1/128 md5' >> /var/lib/pgsql/data/pg_hba.conf"
+        sudo sh -c "cat >/var/lib/pgsql/data/pg_hba.conf <<EOD
+local all all trust
+host all all 127.0.0.1/32 md5
+host all all ::1/128 md5
+EOD
+"
       fi
 
       # start the postgresql service
@@ -252,14 +264,11 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "f18" -o "$os" = "el6" ]; then
         sudo systemctl start postgresql.service
       fi
 
-      # create the database user and grant CREATEDB
-      sudo su - postgres -c "psql -c \"CREATE ROLE $FACTER_RDBMS_USERNAME WITH LOGIN CREATEDB SUPERUSER PASSWORD '$FACTER_RDBMS_PASSWORD';\""
-      if [ $? -ne 0 ]; then
-        echo "INFO: postgresql create role $FACTER_RDBMS_USERNAME failed"
-      fi
+      # create the database role with CREATEDB permission
+      create_pg_user
     fi
   else
-    for dep in `echo $depends`; do
+    for dep in $depends; do
       # sanity check that it just installed
       if ! `rpm -q --quiet --nodigest $dep`; then
         echo "ABORTING:  $dep is not installed"
@@ -290,11 +299,8 @@ if [ "$os" = "debian" ]; then
       # attempt to start it in case it was previously installed
       sudo service postgresql start
 
-      # create the database user and grant CREATEDB
-      sudo su - postgres -c "psql -c \"CREATE ROLE $FACTER_RDBMS_USERNAME WITH LOGIN CREATEDB SUPERUSER PASSWORD '$FACTER_RDBMS_PASSWORD';\""
-      if [ $? -ne 0 ]; then
-        echo "INFO: postgresql create role $FACTER_RDBMS_USERNAME failed"
-      fi
+      # create the database role with CREATEDB permission
+      create_pg_user
     fi
   fi
 fi
@@ -353,8 +359,7 @@ if [ "x$RBENV_VERSION" != "x" ]; then
 
   export FACTER_RBENV_VERSION=$RBENV_VERSION
   # looking up a home dir in puppet is not terribly easy, hence the next two lines
-  eval thehomedir=~
-  export FACTER_RBENV_HOME=`echo $thehomedir`/.rbenv
+  export FACTER_RBENV_HOME=~/.rbenv
 fi
 
 gem_installs="json facter puppet"
@@ -368,7 +373,7 @@ fi
 declare -A gem_versions
 gem_versions["facter"]=1.6.13
 
-for the_gem in `echo $gem_installs`; do
+for the_gem in $gem_installs; do
   if [ `gem list -i $the_gem` = "false" ]; then
     cmd="gem install $the_gem"
     if [ "x$RBENV_VERSION" = "x" ]; then
@@ -384,7 +389,7 @@ for the_gem in `echo $gem_installs`; do
         exit 1
       fi
     fi
-    if  [[ ${gem_versions[$the_gem]} ]]; then
+    if [ ! "x${gem_versions[$the_gem]}" = "x" ]; then
         cmd="$cmd -v ${gem_versions[$the_gem]}"
     fi
     $cmd

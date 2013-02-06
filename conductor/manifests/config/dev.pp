@@ -19,6 +19,17 @@ class conductor::config::dev {
       # mode    => 640, owner => 'root', group => 'aeolus'
     }
   }
+  file { "${aeolus_workdir}/bin":
+    ensure => "directory",
+  }
+  file{ "${aeolus_workdir}/bin/conductor":
+    content => template("conductor/conductor"),
+    mode => 755,
+    require => File["${aeolus_workdir}/bin"]
+  }
+  file{ "${aeolus_workdir}/conductor/src/Procfile":
+    content => template("conductor/Procfile"),
+  }
 
   exec { "use established ouath.json if it exists":
     cwd => "${aeolus_workdir}/conductor/src/config",

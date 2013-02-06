@@ -1,63 +1,37 @@
 #!/bin/bash
 
-function create_pg_user {
-  # create the database role
-  sudo su - postgres -c "psql -c \"CREATE ROLE $FACTER_RDBMS_USERNAME WITH LOGIN CREATEDB SUPERUSER PASSWORD '$FACTER_RDBMS_PASSWORD';\""
-  # note that the SUPERUSER option can be removed once we use Rails that merge this fix: https://github.com/rails/rails/pull/8548
-  if [ $? -ne 0 ]; then
-    echo "INFO: postgresql create role $FACTER_RDBMS_USERNAME failed"
-  fi
-}
-
 # Set this to 0 if you don't have (or don't want to use) sudo permissions
-if [ "x$HAVESUDO" = "x" ]; then
-  HAVESUDO=1
-fi
+HAVESUDO=${HAVESUDO:=1}
 
 # Setup a development environment for conductor, tim
 # and aeolus-cli.  Configure conductor to use an external
 # imagefactory/deltacloud by setting env variables and
 # oauth.json, below.  Startup conductor on port 3000
 
-if [ "x$WORKDIR" = "x" ]; then
-  export WORKDIR=~/aeolus-workdir
-fi
+export WORKDIR=${WORKDIR:=~/aeolus-workdir}
 
 # Where the aeolus projects (conductor, aeolus-cli and tim)
 # get checked out to
-if [ "x$FACTER_AEOLUS_WORKDIR" = "x" ]; then
-  export FACTER_AEOLUS_WORKDIR=$WORKDIR
-fi
+export FACTER_AEOLUS_WORKDIR=${FACTER_AEOLUS_WORKDIR:=$WORKDIR}
 
 # Port to start up conductor on
-if [ "x$FACTER_CONDUCTOR_PORT" = "x" ]; then
-  export FACTER_CONDUCTOR_PORT=3000
-fi
+export FACTER_CONDUCTOR_PORT=${FACTER_CONDUCTOR_PORT:=3000}
 
 # Used specifically for the conductor/tim's callback_url that gets
 # provided to imagefactory (in
 # /conductor/src/config/initializers/tim.rb)
-if [ "x$FACTER_CONDUCTOR_HOSTNAME" = "x" ]; then
-  export FACTER_CONDUCTOR_HOSTNAME=`hostname`
-fi
+export FACTER_CONDUCTOR_HOSTNAME=${FACTER_CONDUCTOR_HOSTNAME:=`hostname`}
 
 # RDBMS to use for the install (postgresql|sqlite)
-if [ "x$FACTER_RDBMS" = "x" ]; then
-  export FACTER_RDBMS=postgresql
-fi
+export FACTER_RDBMS=${FACTER_RDBMS:=postgresql}
 
 # If using postgresql, set some sane defaults if not present in environment
 if [ "$FACTER_RDBMS" = "postgresql" ]; then
-  if [ "x$FACTER_RDBMS_DBNAME" = "x" ]; then
-    # assign a random database name if no database name provided by user
-    export FACTER_RDBMS_DBNAME=conductor_`</dev/urandom tr -dc a-z0-9 | head -c${1:-4}`
-  fi
-  if [ "x$FACTER_RDBMS_USERNAME" = "x" ]; then
-    export FACTER_RDBMS_USERNAME=$USER
-  fi
-  if [ "x$FACTER_RDBMS_PASSWORD" = "x" ]; then
-    export FACTER_RDBMS_PASSWORD=v23zj59an
-  fi
+  # assign a random database name if no database name provided by user
+  export FACTER_RDBMS_DBNAME=${FACTER_RDBMS_DBNAME:=conductor_$(
+    < /dev/urandom tr -dc a-z0-9 | head -c 4 )}
+  export FACTER_RDBMS_USERNAME=${FACTER_RDBMS_USERNAME:=$USER}
+  export FACTER_RDBMS_PASSWORD=${FACTER_RDBMS_PASSWORD:=v23zj59an}
 fi
 
 # If you want to use system ruby for the aeolus projects, do not
@@ -67,17 +41,13 @@ fi
 
 # Set default Deltacloud, ImageFactory values
 # (for RH network) if they're not already in the environment
-if [ "x$FACTER_DELTACLOUD_URL" = "x" ]; then
-  export FACTER_DELTACLOUD_URL=http://localhost:3002/api
-fi
-if [ "x$FACTER_IMAGEFACTORY_URL" = "x" ]; then
-  export FACTER_IMAGEFACTORY_URL=http://localhost:8075/imagefactory
-fi
+export FACTER_DELTACLOUD_URL=${FACTER_DELTACLOUD_URL:=http://localhost:3002/api}
+export FACTER_IMAGEFACTORY_URL=${FACTER_IMAGEFACTORY_URL:=http://localhost:8075/imagefactory}
 
 # Create some default OAuth values
 if [ "x$FACTER_OAUTH_JSON_FILE" = "x" ]; then
   export FACTER_OAUTH_JSON_FILE=/tmp/oauth.json
-  if [ ! -e $FACTER_OAUTH_JSON_FILE ]; then
+  if [ ! -f $FACTER_OAUTH_JSON_FILE ]; then
 
     # The next command is more here for illustrative purposes and to
     # allow bootstrap.sh to succeed.  The values in oauth.json should
@@ -114,6 +84,15 @@ fi
 # export FACTER_TIM_PULL_REQUEST=2
 #
 
+create_pg_user() {
+  # create the database role
+  sudo su - postgres -c "psql -c \"CREATE ROLE $FACTER_RDBMS_USERNAME WITH LOGIN CREATEDB SUPERUSER PASSWORD '$FACTER_RDBMS_PASSWORD';\""
+  # note that the SUPERUSER option can be removed once we user Rails that merge this fix: https://github.com/rails/rails/pull/8548
+  if [ $? -ne 0 ]; then
+    echo "INFO: postgresql create role $FACTER_RDBMS_USERNAME failed"
+  fi
+}
+
 if `netstat -tln | grep -q -P "\:$FACTER_CONDUCTOR_PORT\\s"`; then
   echo "A process is already listening on port $FACTER_CONDUCTOR_PORT.  Aborting"
   exit 1
@@ -127,32 +106,20 @@ if [ -e $FACTER_AEOLUS_WORKDIR/conductor -o -e $FACTER_AEOLUS_WORKDIR/tim -o \
 fi
 
 os=unsupported
-if `grep -Eqs 'Red Hat Enterprise Linux Server release 6|CentOS release 6' /etc/redhat-release`; then
-  os=el6
-fi
+grep -Eqs 'Red Hat Enterprise Linux Server release 6|CentOS release 6' /etc/redhat-release && os=el6
 
-if `grep -qs -P 'Fedora release 16' /etc/fedora-release`; then
-  os=f16
-fi
+grep -qs -P 'Fedora release 16' /etc/fedora-release && os=f16
+grep -qs -P 'Fedora release 17' /etc/fedora-release && os=f17
+grep -qs -P 'Fedora release 18' /etc/fedora-release && os=f18
 
-if `grep -qs -P 'Fedora release 17' /etc/fedora-release`; then
-  os=f17
-fi
-
-if `grep -qs -P 'Fedora release 18' /etc/fedora-release`; then
-  os=f18
-fi
-
-if [ -f /etc/debian_version ]; then
-  os=debian
-fi
+test -f /etc/debian_version && os=debian
 
 if [ "$os" = "unsupported" ]; then
-  echo This script has not been tested outside of EL6, Fedora 16/17/18
-  echo or debian. You will need to install development libraries manually.
+  echo "This script has not been tested outside of EL6, Fedora 16/17/18"
+  echo "or Debian. You will need to install development libraries manually."
   echo
-  echo Press Control-C to quit, or ENTER to continue
-  read waiting
+  echo "Press Control-C to quit, or ENTER to continue"
+  read
 fi
 
 # install dependencies for fedora/rhel/centos
@@ -199,7 +166,7 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "f18" -o "$os" = "el6" ]; then
     depends="$depends sqlite-devel"
   fi
 
-  # If we have sudo, we're able to install missing dependencies
+  # If we have sudo, we are able to install missing dependencies
   if [ "$HAVESUDO" = "1" ]; then
     # Check which dependencies need installing
     install_list=""
@@ -249,12 +216,11 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "f18" -o "$os" = "el6" ]; then
 
       # if there was no pre-existing pg_hba.conf, set all authentication methods to 'trust' and 'md5'
       if [ $PG_HBA_CONF_EXISTS -eq 0 ]; then
-        sudo sh -c "cat >/var/lib/pgsql/data/pg_hba.conf <<EOD
-local all all trust
-host all all 127.0.0.1/32 md5
-host all all ::1/128 md5
-EOD
-"
+        sudo sh -c "cat >/var/lib/pgsql/data/pg_hba.conf <<-EOD
+					local all all trust
+					host all all 127.0.0.1/32 md5
+					host all all ::1/128 md5
+				EOD"
       fi
 
       # start the postgresql service
@@ -342,15 +308,16 @@ if [ "x$RBENV_VERSION" != "x" ]; then
   fi
 
   # install bundler if not already installed
-  cd $FACTER_AEOLUS_WORKDIR && rbenv local $RBENV_VERSION
-  cd $FACTER_AEOLUS_WORKDIR && rbenv rehash
-  cd $FACTER_AEOLUS_WORKDIR && rbenv which bundle | grep -q "/$RBENV_VERSION/bin/bundle"
+  cd $FACTER_AEOLUS_WORKDIR
+  rbenv local $RBENV_VERSION
+  rbenv rehash
+  rbenv which bundle | grep -q "/$RBENV_VERSION/bin/bundle"
   if [ $? -ne 0 ]; then
-    cd $FACTER_AEOLUS_WORKDIR && gem install bundler
-    cd $FACTER_AEOLUS_WORKDIR && rbenv rehash
+    gem install bundler
+    rbenv rehash
 
     # sanity check install of bundler
-    cd $FACTER_AEOLUS_WORKDIR && rbenv which bundle | grep -q "/$RBENV_VERSION/bin/bundle"
+    rbenv which bundle | grep -q "/$RBENV_VERSION/bin/bundle"
     if [ $? -ne 0 ]; then
       echo "gem install bundler in rbenv for version $RBENV_VERSION did not appear to succeed"
       exit 1
@@ -374,7 +341,7 @@ declare -A gem_versions
 gem_versions["facter"]=1.6.13
 
 for the_gem in $gem_installs; do
-  if [ `gem list -i $the_gem` = "false" ]; then
+  if ! gem list -i $the_gem >/dev/null; then
     cmd="gem install $the_gem"
     if [ "x$RBENV_VERSION" = "x" ]; then
       # TODO perhaps determine a way to install gem local to current
@@ -393,7 +360,7 @@ for the_gem in $gem_installs; do
         cmd="$cmd -v ${gem_versions[$the_gem]}"
     fi
     $cmd
-    if [ `gem list -i $the_gem` = "false" ]; then
+    if ! gem list -i $the_gem >/dev/null; then
       echo "ABORTING.  FAILED TO INSTALL $the_gem"
       exit 1
     fi
@@ -418,7 +385,7 @@ if [ "x$SETUP_LOCAL_DELTACLOUD_RELEASE" != "x" ]; then
   git checkout $SETUP_LOCAL_DELTACLOUD_RELEASE
   cd server
   bundle install --path ../bundle
-  [ -z $SETUP_LOCAL_DELTACLOUD_PORT ] && SETUP_LOCAL_DELTACLOUD_PORT=3002
+  SETUP_LOCAL_DELTACLOUD_PORT=${SETUP_LOCAL_DELTACLOUD_PORT:=3002}
   if `netstat -tlpn | grep -q -P "\:$SETUP_LOCAL_DELTACLOUD_PORT\\s"`; then
     echo "WARNING A process is already listening on port $SETUP_LOCAL_DELTACLOUD_PORT"
     echo "        Not starting up deltacloud"
@@ -446,7 +413,7 @@ if [ ! -d dev-tools ]; then
     cd ..
   fi
 else
-  echo 'dev-tools DIRECTORY ALREADY EXISTS, LEAVING IN TACT.'
+  echo 'dev-tools DIRECTORY ALREADY EXISTS, LEAVING INTACT.'
 fi
 
 echo "Given this puppet bug http://projects.puppetlabs.com/issues/9862"

@@ -24,10 +24,10 @@ Note, if you do not have or do not wish to use sudo, you can still run
 bootstrap.sh assuming all needed dependencies are installed by defining
 "export HAVESUDO=0" beforehand.
 
-Either of the above commands will work on: RHEL 6, Fedora 16/17, and
-Ubuntu 12.04/12.10.  Note, for the local instance of Conductor to be
-fully functional, some env variables (described below) need to point
-to existing imagefactory/deltacloud instance URLs and an
+Either of the above commands will work on: RHEL 6, Fedora 16/17/18,
+and Ubuntu 12.04/12.10.  Note, for the local instance of Conductor to
+be fully functional, some env variables (described below) need to
+point to existing imagefactory/deltacloud instance URLs and an
 oauth.json credential.  Otherwise, Conductor will still start up but
 won't be very usable.
 

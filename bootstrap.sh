@@ -130,22 +130,26 @@ if `grep -qs -P 'Fedora release 17' /etc/fedora-release`; then
   os=f17
 fi
 
+if `grep -qs -P 'Fedora release 18' /etc/fedora-release`; then
+  os=f18
+fi
+
 if [ -f /etc/debian_version ]; then
   os=debian
 fi
 
 if [ "$os" = "unsupported" ]; then
-  echo This script has not been tested outside of EL6, Fedora 16,
-  echo Fedora 17 or debian. You will need to install development
-  echo libraries manually.
+  echo This script has not been tested outside of EL6, Fedora 16/17/18
+  echo or debian. You will need to install development libraries manually.
   echo
   echo Press Control-C to quit, or ENTER to continue
   read waiting
 fi
 
 # install dependencies for fedora/rhel/centos
-if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "el6" ]; then
+if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "f18" -o "$os" = "el6" ]; then
   depends="git patch"
+  depends="$depends net-tools" # for netstat
 
   # general ruby deps needed to roll your own ruby or build extensions
   depends="$depends gcc make zlib-devel"
@@ -171,6 +175,9 @@ if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "el6" ]; then
     if [ $os != "el6" ]; then
       depends="$depends rubygem-bundler"
     fi
+  else
+    # the ruby-build plugin to rbenv requires tar
+    depends="$depends tar"
   fi
 
   # Add Deltacloud build dependencies if needed
@@ -299,7 +306,9 @@ fi
 
 if [ "x$RBENV_VERSION" != "x" ]; then
 
-  # only used for "rbenv install" in the Fedora-(16|17) / ruby 1.8.7 case
+  # only used for "rbenv install" in the Fedora-(16|17) / ruby 1.8.7 case.
+  # not tested with Fedora 18 since ruby18 is no longer supported in
+  # conductor/tim
   if [ "x$RBENV_INSTALL_CONFIGURE_OPTS" = "x" ]; then
     if [ "$os" = "f16" -o "$os" = "f17" ]; then
       if echo $RBENV_VERSION | grep -qs '^1.8.7-' ; then

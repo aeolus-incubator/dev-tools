@@ -1,10 +1,13 @@
 class aeolus_dev_tools_path {
-  if $rbenv_home == undef {
-    Exec { path => "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin",
-           logoutput => "on_failure" }
-  } else {
+  if $rbenv_home != undef {
     Exec { path => "$rbenv_home/bin:$rbenv_home/shims:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin",
              logoutput => "on_failure" }
+  } elsif $gem_home != undef {
+    Exec { path => "$gem_home/bin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin",
+             logoutput => "on_failure" }
+  } else {
+    Exec { path => "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin",
+           logoutput => "on_failure" }
   }
   if $aeolus_workdir == undef {
     $aeolus_workdir = '/tmp'

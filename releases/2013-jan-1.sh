@@ -8,6 +8,83 @@
 # without oauth on localhost:8075
 #
 
+### BEGIN ImageFactory instalation
+# Install imagefactory 2 from repository
+
+export WORKDIR=${WORKDIR:=~/aeolus-workdir}
+
+os=unsupported
+
+grep -qs -P 'Fedora release 17' /etc/fedora-release && os=f17
+grep -qs -P 'Fedora release 18' /etc/fedora-release && os=f18
+
+if [ "$os" = "unsupported" ]; then
+  echo "ImageFactory install was not tested outside 17/18."
+  echo "Please follow instructions at:"
+  echo "https://github.com/aeolusproject/imagefactory/wiki/Installing-from-Source"
+  echo "To install development libraries manually."
+  echo
+  echo "Press Control-C to quit, or ENTER to skip this step."
+  read
+else
+
+  mkdir -p $WORKDIR
+  cd $WORKDIR
+  
+  git clone git://github.com/aeolusproject/imagefactory.git
+  
+  if [ ! -d imagefactory ]; then
+    echo "sorry, git checkut failed, retry later"
+    exit 1
+  fi
+  
+  cd imagefactory/
+  git checkout 07ce354
+  make rpm
+  
+  cd imagefactory-plugins/; make rpm
+  
+  cd imagefactory-plugins/; make rpm
+  cd ~/rpmbuild/RPMS/noarch
+  
+  RPMS='imagefactory' # imagefactory-secondary'
+  RPMS="$RPMS imagefactory-plugins imagefactory-plugins-FedoraOS imagefactory-plugins-OpenStackCloud imagefactory-plugins-EC2Cloud imagefactory-plugins-EC2Cloud-JEOS-images imagefactory-plugins-MockRPMBasedOS imagefactory-plugins-MockSphere imagefactory-plugins-vSphere imagefactory-plugins-RHEVM"
+  
+  # install everything *except* imagefactory-secondary which has a yum
+  # error and only seems needed to get around a firewall, from the rpm desciption:
+  #
+  # Summary     : Remote/Secondary Image Factory functionality
+  # Description :
+  # Additional modules to allow the use of primary and secondary factories.
+  # This is mainly useful when operating the primary factory behind a restrictive firewall.
+  
+  INSTALL=$(for p in $RPMS; do echo -n "${p}-1*rpm "; done)
+  sudo yum install $INSTALL
+  
+  # Verify the dependencies did install
+  fail_list=""
+  for dep in $RPMS; do
+    if ! `sudo rpm -q --quiet --nodigest $dep`; then
+      fail_list="$fail_list $dep"
+    fi
+  done
+  
+  # If anything failed verification, we tell the user and exit
+  if [ ! -z "$fail_list" ]; then
+      echo "ABORTING:  FAILED TO INSTALL $fail_list"
+      exit 1
+  fi
+  
+  # imagefactory assumes libvirtd is already started
+  sudo systemctl start libvirtd.service
+  
+  sudo grep -q -- '--debug --no_oauth --no_ssl' /etc/sysconfig/imagefactoryd || sudo sed -ie 's/--debug/--debug --no_oauth --no_ssl/g' /etc/sysconfig/imagefactoryd
+  echo "starting image factory"
+  sudo systemctl start imagefactoryd.service
+fi
+
+### END ImageFactory instalation
+
 ### BEGIN RELEASE-SPECIFIC VERSION DEFININTIONS
 
 # Points to https://github.com/aeolus-incubator/dev-tools/commit/ce50b51336

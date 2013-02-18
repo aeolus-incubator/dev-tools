@@ -27,6 +27,7 @@ if [ "$os" = "unsupported" ]; then
   echo "Press Control-C to quit, or ENTER to skip this step."
   read
 else
+  sudo yum install tar git
 
   mkdir -p $WORKDIR
   cd $WORKDIR

@@ -27,6 +27,7 @@ if [ "$os" = "unsupported" ]; then
   echo "Press Control-C to quit, or ENTER to skip this step."
   read
 else
+  sudo yum install tar git
 
   mkdir -p $WORKDIR
   cd $WORKDIR
@@ -92,7 +93,7 @@ export DEV_TOOLS_BRANCH=bb6aa09
 
 # Points to https://github.com/aeolusproject/conductor/commit/f66ce6fb
 export FACTER_CONDUCTOR_BRANCH=5420594
-export SETUP_LOCAL_DELTACLOUD_RELEASE=release-1.1.0
+export SETUP_LOCAL_DELTACLOUD_RELEASE=release-1.0.5
 export FACTER_TIM_BRANCH=v0.2.0
 export RBENV_VERSION=1.9.3-p374
 

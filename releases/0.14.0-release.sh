@@ -1,12 +1,10 @@
 #!/bin/bash
 
-# Release script for 2013-Jan-1
+# Release script for 0.14.x release branch
 #
 # To be run as a sudo-enabled user
 # 
-# This script may be run as-is if you have imagefactory v2 running
-# without oauth on localhost:8075
-#
+# This script assumes that imagefactory is *not* installed via RPM
 
 ### BEGIN ImageFactory instalation
 # Install imagefactory 2 from repository
@@ -39,12 +37,10 @@ else
   fi
   
   cd imagefactory/
-  git checkout 07ce354
+  git checkout f786e58
   make rpm
   
-  cd imagefactory-plugins/; make rpm
-  
-  cd imagefactory-plugins/; make rpm
+  cd imagefactory_plugins/; make rpm
   cd ~/rpmbuild/RPMS/noarch
   
   RPMS='imagefactory' # imagefactory-secondary'
@@ -88,11 +84,11 @@ fi
 ### BEGIN RELEASE-SPECIFIC VERSION DEFININTIONS
 
 # Points to https://github.com/aeolus-incubator/dev-tools/commit/ce50b51336
-export DEV_TOOLS_BRANCH=bb6aa09
+export DEV_TOOLS_BRANCH=012af96
 
 # Points to https://github.com/aeolusproject/conductor/commit/f66ce6fb
-export FACTER_CONDUCTOR_BRANCH=5420594
-export SETUP_LOCAL_DELTACLOUD_RELEASE=release-1.1.0
+export FACTER_CONDUCTOR_BRANCH=0.14.x
+export SETUP_LOCAL_DELTACLOUD_RELEASE=release-1.1.1
 export FACTER_TIM_BRANCH=v0.2.0
 export RBENV_VERSION=1.9.3-p374
 

@@ -411,6 +411,9 @@ if [ "x$SETUP_LOCAL_DELTACLOUD_RELEASE" != "x" ]; then
   cd deltacloud
   git checkout $SETUP_LOCAL_DELTACLOUD_RELEASE
   cd server
+
+  echo "gem 'tilt', '=1.3.3'" >> Gemfile
+
   bundle install --path ../bundle
   [ -z $SETUP_LOCAL_DELTACLOUD_PORT ] && SETUP_LOCAL_DELTACLOUD_PORT=3002
   if `netstat -tlpn | grep -q -P "\:$SETUP_LOCAL_DELTACLOUD_PORT\\s"`; then

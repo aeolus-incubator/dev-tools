@@ -83,8 +83,8 @@ fi
 
 ### BEGIN RELEASE-SPECIFIC VERSION DEFININTIONS
 
-# Points to https://github.com/aeolus-incubator/dev-tools/commit/ce50b51336
-export DEV_TOOLS_BRANCH=012af96
+# Points to https://github.com/aeolus-incubator/dev-tools/commit/0.14.0
+export DEV_TOOLS_BRANCH=0.14.0
 
 # Points to https://github.com/aeolusproject/conductor/commit/f66ce6fb
 export FACTER_CONDUCTOR_BRANCH=0.14.x

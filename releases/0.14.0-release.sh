@@ -87,7 +87,7 @@ fi
 export DEV_TOOLS_BRANCH=0.14.0
 
 # Points to https://github.com/aeolusproject/conductor/commit/f66ce6fb
-export FACTER_CONDUCTOR_BRANCH=0.14.x
+export FACTER_CONDUCTOR_BRANCH=0.14.0
 export SETUP_LOCAL_DELTACLOUD_RELEASE=release-1.1.1
 export FACTER_TIM_BRANCH=v0.2.0
 export RBENV_VERSION=1.9.3-p374

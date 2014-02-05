@@ -122,6 +122,17 @@ if [ "$os" = "unsupported" ]; then
   read
 fi
 
+# disclaimer for standard el6 system ruby, bail early instead of continuing
+if [ "$os" = "el6" -a "x$RBENV_VERSION" = "x" ] && (
+      ! `rpm -q --quiet --nodigest ruby` || # <- ruby not installed now, so 1.8.7 would be installed later
+      (`which ruby >/dev/null` && `ruby --version | grep -q '1.8.7'` )
+  ); then
+  echo  This script is not supported on el6 with system ruby 1.8.7.
+  echo
+  echo "Press Control-C to quit, or ENTER to continue"
+  read
+fi
+
 # install dependencies for fedora/rhel/centos
 if [ "$os" = "f16" -o "$os" = "f17" -o "$os" = "f18" -o "$os" = "el6" ]; then
   depends="git patch"
@@ -249,7 +260,7 @@ if [ "$os" = "debian" ]; then
     if [ "$FACTER_RDBMS" = "postgresql" ]; then
       sudo apt-get install -y postgresql postgresql-client libpq-dev
     fi
-    if [ "$FACTER_RDBMS" = "sqlite" ]; then
+    if [ "$FACTER_RDBMS" = "sqlite" -o "x$SETUP_LOCAL_DELTACLOUD_RELEASE" != "x" ]; then
       sudo apt-get install -y sqlite3 libsqlite3-dev
     fi
 
@@ -327,9 +338,36 @@ if [ "x$RBENV_VERSION" != "x" ]; then
   export FACTER_RBENV_VERSION=$RBENV_VERSION
   # looking up a home dir in puppet is not terribly easy, hence the next two lines
   export FACTER_RBENV_HOME=~/.rbenv
+else
+
+  # system ruby 1.8.7 is not supported (likely that only an older
+  # ubuntu distro or a non-standard ruby setup would trigger this)
+  if `ruby --version | grep -q '1.8.7'`; then
+    echo dev-tools with ruby 1.8.7 is not supported and probably will not work
+    echo
+    echo "Press Control-C to quit, or ENTER to continue"
+    read
+  fi
+
+  # set our gem search path to only be local to this user, to avoid
+  # conflicts with system-installed gems
+  if [ "$os" = "debian" ]; then
+    export GEM_HOME=~/.gems-aeolus
+    mkdir -p $GEM_HOME
+  else
+    # for fedora, this will look like /home/$USER/.gem/ruby/1.9.1
+    export GEM_HOME=`gem environment gemdir`
+  fi
+  export PATH=$GEM_HOME/bin:$PATH
+  export FACTER_PATH=$PATH
+  # only use GEM_HOME, do not look at system-wide gem paths
+  # ref: http://docs.rubygems.org/read/chapter/12
+  export GEM_PATH=
+  # for puppet, so we can find the gem binaries
+  export FACTER_GEM_HOME=$GEM_HOME
 fi
 
-gem_installs="json facter puppet foreman"
+gem_installs="rdoc json facter puppet foreman"
 if [ "$os" = "el6" -o "$os" = "debian" ]; then
   gem_installs="$gem_installs bundler"
 fi
@@ -343,19 +381,6 @@ gem_versions["facter"]=1.6.13
 for the_gem in $gem_installs; do
   if ! gem list -i $the_gem >/dev/null; then
     cmd="gem install $the_gem"
-    if [ "x$RBENV_VERSION" = "x" ]; then
-      # TODO perhaps determine a way to install gem local to current
-      # user instead.  For now, do a system install of the gem when
-      # using system ruby
-      # http://docs.rubygems.org/read/chapter/3
-      if [ "$HAVESUDO" = "1" ]; then
-        cmd="sudo $cmd"
-      else
-        echo 'Installing local gems without using rbenv is not currently supported.'
-        echo 'If you want to install gems system-wide using system ruby instead of rbenv, you must be a sudo-enabled user'
-        exit 1
-      fi
-    fi
     if [ ! "x${gem_versions[$the_gem]}" = "x" ]; then
         cmd="$cmd -v ${gem_versions[$the_gem]}"
     fi
@@ -416,14 +441,11 @@ else
   echo 'dev-tools DIRECTORY ALREADY EXISTS, LEAVING INTACT.'
 fi
 
-echo "Given this puppet bug http://projects.puppetlabs.com/issues/9862"
-echo "you may need to add manually the 'puppet' group to the system in case of errors."
-
 # install repos, configure and start up conductor
 cd $WORKDIR/dev-tools
 puppet apply -d --modulepath=. test.pp --no-report
 
-if [ $? -eq 0 ]; then
+if `netstat -tln | grep -q -P "\:$FACTER_CONDUCTOR_PORT\\s"`; then
   echo "Success!  Dev-tools has set up your Conductor environment along with"
   echo "the related Aeolus projects, Tim and Aeolus-cli."
   echo ""
@@ -453,6 +475,17 @@ if [ $? -eq 0 ]; then
     echo "    eval \"\$(rbenv init -)\""
     echo "  fi"
   fi
+fi
+
+if [ "x$RBENV_VERSION" = "x" ]; then
+  echo ""
+  echo "This script used the following env vars:"
+  echo "   PATH=$PATH"
+  echo "   GEM_HOME=$GEM_HOME"
+  echo "   GEM_PATH=$GEM_PATH"
+  echo ""
+  echo "If you are going to hack away, you probably want to "
+  echo "set these in your shell!"
 fi
 
 # Arbitrary post-script command to execute
